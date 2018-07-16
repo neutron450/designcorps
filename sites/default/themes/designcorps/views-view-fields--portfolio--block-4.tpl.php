@@ -1,0 +1,1 @@
+<option value="<?php print $fields['path']->content ?>"><?php print $fields['field_profile_first_name_primary_value']->content ?> <?php print $fields['field_profile_last_name_primary_value']->content ?></option>

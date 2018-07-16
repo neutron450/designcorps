@@ -1,0 +1,300 @@
+<?php
+// $Id: messaging_notify.module,v 1.1.4.4 2010/05/11 02:18:04 jareyero Exp $
+/**
+ * @file
+ * Subscriptions to messaging events
+ */
+
+/**
+ * Implementation of hook_menu()
+ */
+function messaging_notify_menu() {
+  $items['admin/messaging/settings/notify'] = array(
+    'title' => 'Notifications',
+    'description' => 'Configure notifications for messages',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('messaging_notify_admin_settings'),
+    'access arguments' => array('administer messaging'),
+    'file' => 'messaging_notify.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  // User pages, will be disabled by default
+  $items['user/%user/notifications/messaging'] = array(
+    'type' => MENU_LOCAL_TASK,
+    'access callback' => FALSE, 
+    'access arguments' => FALSE,
+    'title' => 'Messages',
+    'weight' => 10,
+    'page callback' => 'messaging_notify_user_subscription_list_page',
+    'page arguments' => array(1),
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function messaging_notify_perm() {
+  return array('subscribe to messages');
+}
+
+/**
+ * Implementation of hook_notifications()
+ */
+function messaging_notify_notifications($op, &$arg0, $arg1 = NULL, $arg2 = NULL) {
+  switch ($op) {
+    case 'subscription types':
+      $types['messaging'] = array(
+        'event_type' => 'message',
+        'object_type' => 'message',
+        'title' => t('Messages'),
+        'description' => t('Receive an aditional notification whenever a message is sent to you by a different method.'),
+        'access' => 'subscribe to messages',
+        'user page' => 'user/%user/notifications/messaging',
+        'fields' => array('method'),
+      );
+      return $types;
+ 
+    case 'subscription fields':
+      // Information about available fields for subscriptions
+      $fields['method'] = array(
+        'name' => t('Sending method'),
+        'field' => 'method',
+        'type' => 'string',
+        'options callback' => 'messaging_notify_method_subscribe_list'
+      );
+      return $fields;
+
+    case 'event types':
+      // Node inserts are not grouped by node but all together. The digest will look like:
+      //   New content has been submitted
+      //   - Story Title1 by Author1
+      //   - Event Title2 by Author2
+      $types['message-sent'] = array(
+        'type' => 'message',
+        'action' => 'sent',
+        'name' => t('New message from [method-name]'),
+        'line' => t('[type-name] [title] by [author-name]'),
+        'digest' => array('message', 'method'),
+        'description' => t('Message received'),
+        'template' => 'notifications-event-message',
+      );
+      return $types;
+ 
+    case 'object types':
+      // Define object types for use by events and subscriptions
+      // Node and user are defined in the main notifications module
+      $types['message'] = array(
+        'name' => t('Message'),
+        'key_field' => 'mqid',
+        'load callback' => 'messaging_message_load',
+        //'format callback' => 'notifications_content_comment_cid2title',
+        //'access callback' => 'notifications_content_comment_access',
+      );      
+      return $types;
+   }
+}
+
+/**
+ * Implementation of hook notifications_event()
+ */
+function messaging_notify_notifications_event($op, $event, $account = NULL) {
+  switch ($op) {
+    case 'query':
+      if ($event->type == 'message' && ($message = $event->get_object('message'))) {
+        $query[]['fields'] = array('method' => $message->method);
+        // We just send notifications from the message to the same user
+        $query[]['where'] = array('s.uid' => $message->uid);
+        return $query;
+      }
+      break;   
+  }
+}
+
+/**
+ * Implementation of hook notifications_subscription()
+ */
+function messaging_notify_notifications_subscription($op, $subscription = NULL, $account = NULL) {
+  switch ($op) {
+    case 'access':
+      // Prevent getting a notifications with the same method we are subscribed too (infinite loops)
+      if ($subscription->type == 'messaging' && $subscription->has_condition('method', $subscription->send_method)) {
+        $subscription->error_message = t('You cannot get message notifications using the same sending method.');
+        return FALSE;
+      }
+      break;
+  }
+}
+
+/**
+ * Available methods to subscribe to
+ */
+function messaging_notify_method_subscribe_list() {
+  $options = array();
+  $allowed = variable_get('messaging_notify_subscribe', array());
+  foreach (messaging_method_list(NULL) as $method => $name) {
+    if (!empty($allowed[$method])) {
+      $options[$method] = $name;
+    }
+  }
+  return $options;
+}
+
+/**
+ * Available methods to subscribe to
+ */
+function messaging_notify_method_receive_list($account) {
+  $options = array();
+  $allowed = variable_get('messaging_notify_receive', array());
+  foreach (messaging_method_list($account) as $method => $name) {
+    if (!empty($allowed[$method])) {
+      $options[$method] = $name;
+    }
+  }
+  return $options;
+}
+/**
+ * Implementation of hook_messaging()
+ */
+function messaging_notify_notifications_templates($op, $type = 'all', $language = NULL) {
+  switch ($op) {
+    case 'help':
+      if ($type == 'notifications-event-message') {
+        $help[] = t('The header and footer will default to the ones from Notification events');
+        return $help;
+      }
+      break;
+ 
+    case 'info':
+      $info = array();
+      if ($type == 'all' || $type == 'notifications-event-message') {
+        // Generic message sent
+        $info['notifications-event-message'] = array(
+          'module' => 'messaging_notify',
+          'name' => t('Message notifications'),
+          'description' => t('Notifications for messages. When a message is sent through some channel (I.e. a private message), you may want to be notified through a different one (I.e. a daily email digest).'),
+          'help' => $help,
+          'fallback' => 'notifications-event',
+        );
+      }
+      if ($type == 'all' || $type == 'notifications-digest-message-method') {
+        // Message group digests
+        $info['notifications-digest-message-method'] = array(
+          'module' => 'messaging_notify',
+          'name' => t('Message digests per method'),
+          'description' => t('Digested message events grouping by sending method.'),
+          'fallback' => 'notifications-digest',
+        );
+      }
+      return $info;
+
+    case 'parts':
+      switch ($type) {
+        case 'notifications-event-message':
+          // Some parts may be re-used from 'notifications-event' group
+          // So we specify only subject and main message
+          return array(
+            'subject' => t('Subject'),
+            'main' => t('Content'),
+            'digest' => t('Digest line'),
+            'footer' => t('Footer')
+          );
+        case 'notifications-digest-message-method':
+          $parts['title'] = t('Group title');
+          $parts['footer'] = t('Group footer');
+          return $parts;
+      }
+      break;
+ 
+    case 'defaults':
+      switch ($type) {
+        case 'notifications-event-message':
+          return array(  
+            'subject' => t('New message from [message-author-name]', array(), $language->language),
+            'main' => array(
+              '[message-subject]',
+              '[message-body]'
+            ),
+            'digest' => t('Message from [message-author-name]: [message-subject]', array(), $language->language),
+          );
+        case 'notifications-digest-message-method':
+          return array(
+            'subject' => t('New messages for [user]', array(), $language->language),
+            'header' => t("Greetings, [user].\n\nThese are your messages", array(), $language->language),
+          );
+      }
+      break;
+
+    case 'tokens':
+      $tokens = array();
+      switch ($type) {
+        case 'notifications-event-message':        
+          $tokens[] = 'author';
+          $tokens[] = 'message';
+          break;
+        case 'notifications-digest-message-method':
+          $tokens[] = array('message', 'message-method');
+          break;
+      }
+      return $tokens;
+  }
+}
+
+/**
+ * Implementation of hook_messaging_message()
+ */
+function messaging_notify_messaging_message($op, $message = NULL) {
+  // Produce event only when the message is sent and the destination is a registered user
+  if ($op == 'sent' && !empty($message->uid)) {
+    // Build a notifications event
+    $data = array(
+      'uid' => $message->sender,
+      'language' => $message->language,
+      'type' => 'message',
+      'action' => 'sent',   
+    );
+    $event = notifications_event_build($data);
+    // Store the message along with the event so we make sure it is available when building
+    $event->store_object('message', $message);
+    // Final build and trigger the event
+    notifications_event($event);
+  }
+}
+
+/**
+ * Generic user page for a subscription type
+ */
+function messaging_notify_user_subscription_list_page($account) {
+  module_load_include('pages.inc', 'notifications');
+  module_load_include('manage.inc', 'notifications'); // Needed for bulk operations
+  return drupal_get_form('messaging_notify_subscription_list_form', $account);  
+}
+
+/**
+ * Form for messaging subscriptions
+ */
+function messaging_notify_subscription_list_form(&$form_state, $account) {
+  $type = 'messaging';
+  $form = notifications_subscription_list_form($form_state, 'messaging', $account);
+
+  // Filter out receiving send methods for these subscriptions
+  $allowed = messaging_notify_method_receive_list($account);
+  foreach (element_children($form['subscriptions']['send_method']) as $key) {
+    $form['subscriptions']['send_method'][$key]['#options'] = $allowed;
+  }
+  return $form;
+}
+
+/**
+ * Validate user messaging subscriptions
+ */
+function messaging_notify_subscription_list_form_validate($form, &$form_state) {
+  return notifications_subscription_list_form_validate($form, $form_state);
+}
+
+/**
+ * Submit user messaging subscriptions
+ */
+function messaging_notify_subscription_list_form_submit($form, &$form_state) {
+  return notifications_subscription_list_form_submit($form, $form_state);
+}

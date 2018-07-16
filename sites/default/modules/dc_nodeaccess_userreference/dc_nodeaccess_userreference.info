@@ -1,0 +1,6 @@
+; $Id: dc_nodeaccess_userreference.info, v 1.0 2011/03/15 23:59:59 kevinwo Exp $
+name = Design Corps Node Access User Reference
+description = Users are given view access to milestones based on association with projects.
+core = 6.x
+
+version = "6.x-1.0-dev"

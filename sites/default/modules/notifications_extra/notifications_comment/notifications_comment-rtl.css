@@ -1,0 +1,15 @@
+/* $Id: notifications_comment-rtl.css,v 1.1.2.1 2010/03/25 11:54:46 jareyero Exp $ */
+#edit-notifications-comment-notify-type-1-wrapper,
+#edit-notifications-comment-notify-type-2-wrapper {
+  float: right;
+}
+
+#edit-notifications-comment-notify-type-1-wrapper {
+  margin-left: 0em;
+  margin-right: 2em;
+}
+
+#edit-notifications-comment-notify-type-2-wrapper {
+  margin-left: 0em;
+  margin-right: 1em;
+}

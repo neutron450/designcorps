@@ -1,0 +1,46 @@
+<?php
+// $Id$
+/**
+* @file
+* Design Corps Node Access User Reference.
+* By Kevin Wolkober
+*/
+
+/*******************************************************************************
+* Hook Functions (Drupal)
+******************************************************************************/
+
+/**
+* Implementation of hook_form_alter().
+*
+* This lets you make changes to any form in the site. You can alter, remove
+* or add form elements. You can also alter the validation and submission
+* behavior. The name will always be modulename_form_alter.
+*/
+/* function dc_notifications_node_access($op, $node) {
+	print_r($op);
+} */
+
+function dc_notifications_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+	if ($node->type == 'milestone') {
+		switch ($op) {
+			case 'insert':
+				$project_node = node_load($node->field_project[0]['nid']);
+				$ref_users = explode(', ', $project_node->field_referenced_users[0]['value']);
+				
+				foreach ($ref_users as $ref_user) {
+					$fields = array('nid' => $node->nid);
+					$subscription = (object)array(
+					  'uid' => $ref_user,
+					  'type' => 'thread',
+					  'fields' => $fields,
+					  'send_interval' => 0,
+					  'send_method' => 'mail',
+					  'event_type' => notifications_subscription_types('thread', 'event_type'),
+					);
+					notifications_save_subscription($subscription);
+				}
+				break;
+		}
+	}
+}

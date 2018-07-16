@@ -1,0 +1,8 @@
+; $Id: dc_login_block.info, v 1.0 2011/05/04 23:59:59 ssimmons Exp $
+name = Design Corps Customized Login Block
+description = Provides a customized login block specified by Design Corps's design comps
+core = 6.x
+
+version = "6.x-1.0-dev"
+
+stylesheets[all][] = dc_login_block.css

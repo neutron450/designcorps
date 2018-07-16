@@ -1,0 +1,79 @@
+#block-dc_login_block-0 label {
+  display: none;
+}
+
+#block-dc_login_block-0 #edit-name-wrapper input.idleField,
+#block-dc_login_block-0 #edit-name-1-wrapper input.idleField {
+    background: url("images/login-form-username-bg.gif") no-repeat scroll 4px center #FFFFFF;
+}
+
+#block-dc_login_block-0 #edit-pass-wrapper input.idleField,
+#block-dc_login_block-0 #edit-pass-1-wrapper input.idleField {
+    background: url("images/login-form-password-bg.gif") no-repeat scroll 4px center #FFFFFF;
+}
+
+.not-logged-in #block-dc_login_block-0 p {
+  float: left;
+  width: 96px;
+}
+
+#block-dc_login_block-0 p {
+  margin: 0;
+}
+
+#block-dc_login_block-0 a {
+  color: #000;
+  display: block;
+  padding: 4px 2px;
+  width: 96px;
+}
+
+#block-dc_login_block-0 a:hover {
+  background: #fff200;
+  text-decoration: none;
+  color: #000;
+}
+
+#block-dc_login_block-0 .active {
+  background: #FFF200;
+  padding: 4px 2px;
+}
+
+#block-dc_login_block-0 #user-login-form {
+    background: #FFF200;
+    float: right;
+    margin-right: 40px;
+    padding: 10px 10px 5px;
+    text-align: left;
+}
+
+#block-dc_login_block-0 .form-item {
+  margin: 0 0 5px 0;
+}
+
+#block-dc_login_block-0 .form-text {
+  width: 160px;
+  border: 1px solid;
+  border-color: #acacac #e7e7e7 #e7e7e7;
+}
+
+#block-dc_login_block-0 form input.form-submit {
+  font-size: 11px;
+  float: left;
+}
+
+#block-dc_login_block-0 #user-login-form .item-list {
+    float: left;
+    margin: 0 0 0 8px;
+}
+
+#block-dc_login_block-0 #user-login-form .item-list li {
+  line-height: 100%;
+}
+
+#block-dc_login_block-0 #user-login-form .item-list a {
+  color: #000;
+  text-decoration: underline;
+  font-size: 11px;
+  font-weight: normal;
+}

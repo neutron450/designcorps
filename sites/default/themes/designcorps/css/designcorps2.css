@@ -1,0 +1,1048 @@
+#user-register label {
+	font-weight: normal;
+}
+
+#user-register .hidden-label label {
+	display: none;
+}
+
+/* #user-register div#edit-field-profile-concentration-value-wrapper label,
+#user-register div#edit-field-profile-info-notes-student-0-value-wrapper label,
+#user-register div#edit-field-profile-portfolio-0-upload-wrapper label,
+#user-register .normal-label label {
+	display: inherit !important;
+	font-weight: normal !important;
+} */
+
+#user-register fieldset legend {
+	font-weight: bold;
+}
+
+#user-register div.form-item div.description {
+	font-size: 10px;
+}
+
+#user-register p {
+	color: #EC008C;
+	font-style: italic;
+}
+
+/* body.page-user #content-content,
+body.node-type-project #content-content {
+	overflow: visible;
+} */
+
+body.page-user #content-inner-inner,
+body.node-type-project #content-inner-inner,
+body.node-type-milestone #content-inner-inner {
+	padding: 0;
+	margin: 0;
+	position: static;
+}
+
+body.page-user div#content-inner-inner h1.title,
+body.node-type-project div#content-inner-inner h1.title,
+body.node-type-milestone div#content-inner-inner h1.title {
+	display: none;
+}
+
+body.page-user #content-region-inner,
+body.node-type-project #content-region-inner,
+body.node-type-milestone #content-region-inner {
+	background: none;
+}
+
+body#pid-user-register-student #content-region-inner,
+body#pid-user-register-client #content-region-inner {
+	background: url('../images/grey-bg.png') top left repeat;
+}
+
+body#pid-user-register-student #content-inner-inner,
+body#pid-user-register-client #content-inner-inner {
+	margin: 0 8px;
+	padding: 10px 0;
+}
+
+body#pid-user-register-student #content-inner-inner h1.title,
+body#pid-user-register-client #content-inner-inner h1.title {
+	display: block;
+}
+
+body.page-user div#block-nice_menus-1,
+body.node-type-project div#block-nice_menus-1,
+body.node-type-milestone div#block-nice_menus-1,
+body#pid-user-register-student.logged-in div#block-nice_menus-1,
+body#pid-user-register-client.logged-in div#block-nice_menus-1 {
+	float: none;
+}
+
+body#pid-user-register-student div#block-nice_menus-1,
+body#pid-user-register-client div#block-nice_menus-1 {
+	float: right;
+}
+
+div#profile-name-address {
+	position: absolute;
+	top: 0;
+	left: 431px;
+	width: 440px;
+	font-size: 14px;
+}
+
+div#profile-name-address div#profile-semesters ul {
+	margin-bottom: 0;
+}
+
+div#profile-name-address div#profile-semesters ul li {
+	color: #000;
+	font-size: 14px;
+}
+
+div#profile-logo {
+	width: 101px;
+	float: left;
+	margin-right: 20px;
+}
+
+div#profile-header-info {
+	float: left;
+	width: 280px;
+}
+
+div#profile-header-name {
+	font-size: 24px;
+	color: #EC008C;
+	font-weight: bold;
+	line-height: 120%;
+}
+
+div#profile-header-name a {
+	color: #EC008C;
+}
+
+div#profile-header-name a:hover {
+	color: #000;
+}
+
+div#block-block-9 {
+	float: right;
+	font-size: 12px;
+	color: #000;
+	font-weight: bold;
+}
+
+div#block-block-9 div.fusion-edit,
+#block-menu-menu-admin-menu div.fusion-edit {
+	display: none;
+}
+
+#block-menu-menu-admin-menu a:hover {
+	background: none;
+	text-decoration: underline;
+}
+
+
+/* Client Design Brief */
+
+body.page-user div#profile-design-brief-left {
+	width: 715px;
+	float: left;
+	margin: 0 5px 0 0;
+}
+
+body.page-user div#profile-design-brief-left-inner {
+	padding: 10px;
+	margin-bottom: 5px;
+	background: url('../images/grey-bg.png') top left repeat;
+}
+
+body.page-user div#profile-design-brief-left div.profile-field {
+	margin-bottom: 15px;
+	font-size: 12px;
+}
+
+body.page-user div#profile-design-brief-left h3 {
+	font-size: 12px;
+	color: #EC008C;
+}
+
+body.page-user div#profile-design-brief-left div.profile-field div.profile-field-label {
+	font-size: 14px;
+	font-weight: bold;
+}
+
+body.page-user div#profile-design-brief-right {
+	width: 235px;
+	float: left;
+}
+
+body.page-user div#profile-semester-status,
+body.page-user div#profile-contacts,
+body.page-user div#projects,
+body.page-user div#profile-uploads {
+	padding: 5px;
+	background: url('../images/grey-bg.png') top left repeat;
+	margin-bottom: 5px;
+}
+
+body.page-user div#profile-semester-status h2,
+body.page-user div#profile-contacts h2,
+body.page-user div#projects h2,
+body.page-user div#profile-uploads h2 {
+	font-size: 16px;
+}
+
+body.page-user div#profile-semester-status h2 {
+	margin-bottom: 0;
+}
+
+body.page-user div#profile-semesters ul {
+	margin: 0 0 15px 0;
+	padding: 0;
+}
+
+body.page-user div#profile-semesters ul li {
+	color: #EC008C;
+	font-size: 12px;
+	font-weight: bold;
+	list-style-type: none;
+}
+
+body.page-user div#profile-status p {
+	color: #EC008C;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+body.page-user div#profile-contacts {
+	font-size: 12px;
+}
+
+body.page-user div#profile-contacts div.profile-contact-title {
+	font-style: italic;
+}
+
+body.page-user div#primary-contact {
+	margin-bottom: 15px;
+}
+
+body.page-user div#projects div.project-name {
+	width: 180px;
+	float: left;
+	font-size: 12px;
+}
+
+body.page-user div#projects div.project-job-no {
+	float: left;
+	font-size: 12px;
+}
+
+body.page-user div#projects div.view-empty {
+	font-size: 12px;
+}
+
+body.page-user div#profile-uploads h3 {
+	font-size: 12px;
+	margin-bottom: 0;
+}
+
+body.page-user div.upload {
+	margin-bottom: 15px;
+}
+
+body.page-user div.upload a {
+	display: block;
+}
+
+body.page-user div.upload div.filename {
+	font-size: 12px;
+	width: 165px;
+	float: left;
+}
+
+body.page-user div.upload div.filesize {
+	font-size: 12px;
+	float: left;
+}
+
+
+/* My */
+
+div#my {
+	margin-top: 40px;
+}
+
+div#my-milestones {
+	width: 715px;
+	float: left;
+	margin: 0 5px 0 0;
+	background: url('../images/grey-bg.png') top left repeat;
+}
+
+body.node-type-milestone div#my-milestones {
+	background: none;
+}
+
+div#my-milestones h2 {
+	font-size: 24px;
+}
+
+div#my-milestones-inner {
+	padding: 10px;
+}
+
+body.node-type-milestone div#my-milestones-inner {
+	padding: 0;
+}
+
+div#milestone-headings div.heading {
+	float: left;
+	font-size: 10px;
+}
+
+div#milestone-headings div#milestone-due-date,
+div#my-milestones div.milestone-due-date {
+	width: 67px;
+	padding-left: 2px;
+}
+
+div#milestone-headings div#milestone-description,
+div#my-milestones div.milestone-title {
+	width: 285px;
+}
+
+div#milestone-headings div#milestone-client,
+div#my-milestones div.milestone-client {
+	width: 180px;
+}
+
+div#milestone-headings div#milestone-project,
+div#my-milestones div.milestone-project {
+	width: 110px;
+}
+
+div#milestone-headings div#milestone-project-job-no,
+div#my-milestones div.milestone-project-job-no {
+	width: 50px;
+}
+
+div#my-milestones div.views-row {
+	margin-bottom: 20px;
+}
+
+div#my-milestones div#milestone-info {
+	background: #FFF;
+	border-top: 1px solid #000;
+	line-height: 24px;
+	height: 24px;
+	font-size: 14px;
+	margin-bottom: 20px;
+	width: 700px;
+}
+
+div#my-milestones div.milestone-link a {
+	display: block;
+	background: #FFF;
+	border-top: 1px solid #000;
+	line-height: 24px;
+	font-size: 14px;
+}
+
+div#my-milestones div.milestone-link a:hover {
+	background: #FFF200;
+}
+
+div#my-milestones div.milestone-due-date {
+	font-weight: bold;
+	float: left;
+	padding-left: 2px;
+}
+
+div#my-milestones div.milestone-title {
+	font-weight: bold;
+	float: left;
+}
+
+div#my-milestones div.milestone-client {
+	font-weight: bold;
+	float: left;
+}
+
+div#my-milestones div.milestone-project {
+	font-weight: bold;
+	float: left;
+}
+
+div#my-milestones div.milestone-project-job-no {
+	float: left;
+}
+
+div#my-milestones div.milestone-description {
+	padding-left: 70px;
+	margin-top: 2px;
+	font-size: 14px;
+}
+
+div#my-milestones div.milestone-posted-comments {
+	margin-left: 70px;
+	margin-top: -10px;
+}
+
+div#my-milestones div.milestone-post-date {
+	font-size: 10px;
+	color: #EC008C;
+	width: 285px;
+	float: left;
+}
+
+div#my-milestones div.milestone-comment-count {
+	font-size: 10px;
+	font-weight: bold;
+	color: #EC008C;
+	width: 180px;
+	float: left;
+}
+
+div#my-milestones div.milestone-actions {
+	width: 110px;
+	float: left;
+}
+
+div#my-milestones div.milestone-actions a {
+	color: #0099FF;
+	font-size: 10px;
+	font-weight: bold;
+}
+
+div#my-milestones div.milestone-edit {
+	display: inline;
+	border-right: 1px solid #0099FF;
+	line-height: 14px;
+	height: 14px;
+}
+
+div#my-milestones div.milestone-delete {
+	display: inline;
+	padding-left: 3px;
+	line-height: 14px;
+	height: 14px;
+}
+
+body.page-user div#content-page-user-right {
+	width: 235px;
+	float: left;
+}
+
+body.page-user div#my-clients,
+body.page-user div#my-recent-comments,
+body.page-user div#my-recent-uploads {
+	padding: 10px;
+	background: url('../images/grey-bg.png') top left repeat;
+	margin-bottom: 5px;
+}
+
+body.page-user div#my-clients h2,
+body.page-user div#my-recent-comments h2,
+body.page-user div#my-recent-uploads h2 {
+	font-size: 16px;
+}
+
+body.page-user div#my-clients h3 {
+	margin-bottom: 0;
+	font-size: 12px;
+}
+
+body.page-user div#my-clients div.my-clients-project-name {
+	width: 180px;
+	float: left;
+	font-size: 12px;
+}
+
+body.page-user div#my-clients div.my-clients-project-job-no {
+	float: left;
+	font-size: 12px;
+}
+
+body.page-user div#my-recent-comments div.views-row {
+	margin-bottom: 15px;
+}
+
+body.page-user div#my-recent-comments div.views-field-subject a {
+	font-size: 12px;
+	font-weight: bold;
+	display: block;
+}
+
+body.page-user div#my-recent-comments div.views-field-timestamp {
+	font-size: 10px;
+	color: #EC008C;
+}
+
+body.page-user div#my-recent-uploads div.upload {
+	margin-bottom: 15px;
+}
+
+body.page-user div#my-recent-uploads div.upload a {
+	font-size: 12px;
+	font-weight: bold;
+	display: block;
+}
+
+body.page-user div#my-recent-uploads div.upload div.filename {
+	width: 100%;
+}
+
+body.page-user div#my-recent-uploads div.upload div.post-date {
+	font-size: 10px;
+	color: #EC008C;
+	display: block;
+}
+
+
+/* Project/Milestone */
+
+div#project-left {
+	width: 715px;
+	float: left;
+	margin: 0 5px 0 0;
+	background: url('../images/grey-bg.png') top left repeat;
+}
+
+div#project-left-inner {
+	padding: 10px;
+}
+
+div#project-left div.profile-field {
+	margin-bottom: 15px;
+	font-size: 12px;
+}
+
+div#project-left h3 {
+	font-size: 12px;
+	color: #EC008C;
+}
+
+div#project-left div.profile-field div.profile-field-label {
+	font-size: 14px;
+	font-weight: bold;
+}
+
+div#project-right {
+	width: 235px;
+	float: left;
+}
+
+div#project-semester-status,
+div#project-contacts,
+div#projects,
+div#milestones,
+div#assigned-to,
+div#profile-uploads {
+	padding: 5px;
+	background: url('../images/grey-bg.png') top left repeat;
+	margin-bottom: 5px;
+}
+
+div#project-semester-status h2,
+div#project-contacts h2,
+div#projects h2,
+div#milestones h2,
+div#assigned-to h2,
+div#profile-uploads h2 {
+	font-size: 16px;
+}
+
+body.page-user h1,
+h1 {
+	font-size: 24px;
+}
+
+body.page-user h1 {
+	margin-bottom: 18px;
+}
+
+body.page-user h1 span.project-title,
+h1 span.project-title {
+	color: #EC008C;
+}
+
+div#project-headings div.heading {
+	font-weight: bold;
+}
+
+div#project-deliverables-job-no {
+	background: #FFF;
+	border-top: 1px solid #000;
+	line-height: 24px;
+	margin-bottom: 15px;
+}
+
+div#project-headings div#project-deliverables-heading,
+div#project-deliverables {
+	width: 525px;
+	padding-left: 2px;
+	float: left;
+	font-size: 14px;
+}
+
+div#project-headings div#project-job-no-heading,
+div#project-job-no {
+	float: left;
+	font-size: 14px;
+}
+
+div#project-notes {
+	margin-bottom: 15px;
+}
+
+div#project-attachments {
+	border-top: 1px solid #000;
+	padding-top: 8px;
+}
+
+div#project-attachments ul {
+	margin: 0;
+	padding: 0;
+}
+
+div#project-attachments ul li {
+	list-style-type: none;
+}
+
+body.node-type-milestone div#project-attachments {
+	border-top: 1px solid #000;
+	padding-top: 15px;
+	margin-left: 70px;
+	margin-bottom: 15px;
+	width: 630px;
+}
+
+body.node-type-milestone div#project-attachments a {
+	display: block;
+}
+
+body.node-type-milestone div#project-attachments span.filesize-heading {
+	margin-left: 268px;
+}
+
+body.node-type-milestone div#project-attachments div.filename {
+	width: 363px;
+	float: left;
+}
+
+body.node-type-milestone div#project-attachments div.filesize {
+	float: left;
+}
+
+body.node-type-milestone div#project-description {
+	margin-left: 70px;
+	width: 630px;
+}
+
+div#project-semester-status h2 {
+	margin-bottom: 0;
+}
+
+div#project-semesters ul {
+	margin: 0 0 15px 0;
+	padding: 0;
+}
+
+div#project-semesters ul li {
+	color: #EC008C;
+	font-size: 12px;
+	font-weight: bold;
+	list-style-type: none;
+}
+
+div#project-status p {
+	color: #EC008C;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+div#project-contacts {
+	font-size: 12px;
+}
+
+div#project-contacts div.project-contact-title {
+	font-style: italic;
+}
+
+div#primary-contact {
+	margin-bottom: 15px;
+}
+
+div#projects {
+	margin-bottom: 0;
+	padding-bottom: 15px;
+}
+
+div.view-projects.view-display-id-block_2 div.views-row-last,
+div.view-projects.view-display-id-block_4 div.views-row-last {
+	margin-bottom: 10px;
+}
+
+div.view-projects.view-display-id-block_2 a,
+div.view-projects.view-display-id-block_4 a,
+div#projects a {
+	display: block;
+	height: 14px;
+	line-height: 14px;
+}
+
+div.view-projects.view-display-id-block_2 a:hover,
+div.view-projects.view-display-id-block_4 a:hover,
+div#projects a:hover {
+	background: #FFF200;
+}
+
+div.view-projects.view-display-id-block_2 div.project-name,
+div.view-projects.view-display-id-block_4 div.project-name,
+div#projects div.project-name {
+	width: 180px;
+	float: left;
+	font-size: 12px;
+}
+
+div.view-projects.view-display-id-block_2 div.project-job-no,
+div.view-projects.view-display-id-block_4 div.project-job-no,
+div#projects div.project-job-no {
+	float: left;
+	font-size: 12px;
+}
+
+div#projects div.view-empty {
+	font-size: 12px;
+}
+
+/* Project - Milestones */
+
+div#milestones {
+	font-size: 12px;
+}
+
+div#milestones a {
+	display: block;
+}
+
+div#milestones a:hover {
+	background: #FFF200;
+}
+
+div#milestones div.milestone-due-date {
+	width: 40px;
+	float: left;
+}
+
+div#milestones div.milestone-name {
+	width: 140px;
+	float: left;
+}
+
+div#milestones div.milestone-job-no {
+	width: 40px;
+	float: left;
+}
+
+/* Project - Assigned to */
+
+div#assigned-to {
+	font-size: 12px;
+}
+
+div#assigned-to a {
+	display: block;
+	width: 225px;
+}
+
+div#assigned-to a:hover {
+	background: #FFF200;
+}
+
+div#assigned-to div.name {
+	width: 180px;
+	float: left;
+}
+
+div#assigned-to div.role {
+	float: left;
+	/* position: relative;
+	z-index: -10; */
+}
+
+div.assigned-group {
+	margin-bottom: 15px;
+}
+
+/* Project - Uploads */
+
+div#profile-uploads h3 {
+	font-size: 12px;
+	margin-bottom: 0;
+}
+
+div#profile-uploads div.upload {
+	margin-bottom: 15px;
+}
+
+div#profile-uploads div.upload a {
+	display: block;
+}
+
+div#profile-uploads div.upload div.filename {
+	font-size: 12px;
+	width: 165px;
+	float: left;
+}
+
+div#profile-uploads div.upload div.filesize {
+	font-size: 12px;
+	float: left;
+}
+
+
+/* Milestone Thread */
+
+div#comments {
+	margin-left: 70px;
+	width: 630px;
+	border-top: 1px solid #000;
+	padding-top: 8px;
+}
+
+body.node-type-internal-blog-entry div#comments {
+	margin-left: 0;
+	margin-top: 15px;
+	width: 100%;
+}
+
+div#comments h2,
+table.comment-upload-attachments th {
+	color: #EC008C;
+	font-size: 12px;
+	text-transform: uppercase;
+}
+
+div.comment,
+div.comments div.comment-by-author,
+div.comments div.comment-by-anon,
+div.comments div.odd {
+	background: none;
+	padding: 5px 0 15px 0;
+	margin: 5px 0;
+	border-top: 1px solid #000;
+}
+
+div.indented div.comment {
+	border: 0;
+}
+
+div.comment h3 span.new {
+	font-size: 10px;
+	text-transform: uppercase;
+	color: #EC008C;
+	font-style: italic;
+	padding-right: 3px;
+}
+
+div.comment div.post-date,
+div.post-line {
+	font-size: 10px;
+	color: #EC008C;
+}
+
+div.post-line {
+	margin-left: 70px;
+	margin-bottom: 15px;
+}
+
+div.comment div.links,
+div.post-line div.links {
+	float: right;
+	margin-right: 30px;
+	color: #0099FF;
+}
+
+div.post-line {
+	margin-right: 15px;
+}
+
+div.comment div.links a,
+div.post-line div.links a {
+	color: #0099FF;
+	font-weight: bold;
+}
+
+body.page-comment div#comments {
+	margin-left: 0;
+	width: 495px;
+	display: none;
+}
+
+body.page-comment div#comments div.comment {
+	background: none;
+}
+
+body.page-comment div.comment {
+	background: #FFF;
+	padding: 10px;
+}
+
+body.page-comment div#comments div.comment {
+	background: none;
+}
+
+body.page-comment div#profile-logo,
+body.page-comment div#my-milestones,
+body.page-comment div#project-right,
+body.page-comment div.post-line,
+body.page-comment div#project-attachments {
+	display: none;
+}
+
+body.page-comment div#project-left {
+	background: none;
+}
+
+body.page-comment div#project-left-inner {
+	padding: 0;
+}
+
+
+
+table.comment-upload-attachments {
+	border-collapse: separate;
+	margin-bottom: 15px;
+}
+
+table.comment-upload-attachments th,
+table.comment-upload-attachments tr,
+table.comment-upload-attachments tr td {
+	background: none;
+	border: 0;
+	padding: 0;
+}
+
+table.comment-upload-attachments tr td a {
+	display: block;
+}
+
+
+/* Contact - Addresses Block */
+
+div#block-block-10 {
+	margin-top: 30px;
+}
+
+div#page-grid-wrap {
+	position: relative;
+	margin: 0 auto;
+}
+
+
+/* Blog */
+
+div#block-views-archive-block_1 ul li,
+div#block-views-archive-block_2 ul li {
+	list-style-type: none;
+}
+
+div.view-id-blog div.views-row {
+	width: 100%;
+}
+
+div.view-id-blog div.views-row,
+.node-type-blog_entry {
+  float: left;
+  margin: 0 -4px 0 -8px;
+  padding: 8px 6px;
+  border-bottom: 5px solid #fff;
+}
+
+div.view-id-blog div.views-row-last,
+.node-type-blog_entry.last {
+  border-bottom: none;
+}
+
+.view-id-blog .views-field-title a,
+body.page-blog .view-id-archive .views-field-title a,
+body.page-internal-blog .view-id-archive .views-field-title a,
+.node-type-blog_entry h2.title a,
+body.node-type-blog-entry h1.title,
+body.node-type-internal-blog-entry h1.title {
+  color: #ec008c;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.view-id-blog .views-field-field-blog-post-date-value,
+body.page-blog .view-id-archive .views-field-field-blog-post-date-value,
+body.page-internal-blog .view-id-archive .views-field-field-blog-post-date-value,
+.field-field-blog-post-date {
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.view-id-blog .views-field-view-node,
+body.page-blog .view-id-archive .views-field-view-node,
+body.page-internal-blog .view-id-archive .views-field-view-node,
+.node-type-blog_entry .field-more-link {
+  text-align: right;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.view-id-blog .views-field-view-node a,
+body.page-blog .view-id-archive .views-field-view-node a,
+body.page-internal-blog .view-id-archive .views-field-view-node a,
+.node-type-blog_entry .field-more-link a {
+  color: #ec008c;
+  font-weight: bold;
+}
+
+/* .view-id-blog .views-row div,
+#view-id-archive-page .views-row div,
+.node-type-blog_entry h2.title,
+.node-type-blog_entry .field,
+.node-type-blog_entry .field-more-link {
+  float: right;
+  width: 339px;
+}
+
+.node-type-blog_entry h2.title {
+  margin: 0 0 3px 0;
+  line-height: 14px;
+}
+
+.view-id-blog .views-row div.views-field-field-news-item-image-fid,
+#view-id-archive-page .views-row div.views-field-field-news-item-image-fid,
+.node-type-blog_entry .field-field-news-item-image {
+  float: left;
+  width: 160px;
+}
+
+.view-id-blog div.views-field-tid,
+#view-id-archive-page div.views-field-tid,
+.node-type-blog_entry .terms {
+  float: left;
+  width: 300px;
+  margin: -22px 0 0 181px;
+  font-size: 11px !important;
+  font-weight: bold;
+  line-height: 120%;
+}
+
+.node-type-blog-entry h1.title {
+  display: none;
+}
+
+.node-type-blog-entry #content-inner,
+.node-type-blog-entry #content-inner-inner {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+div.node-type-blog_entry {
+  padding-bottom: 20px;
+} */

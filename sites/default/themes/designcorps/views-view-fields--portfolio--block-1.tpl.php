@@ -1,0 +1,1 @@
+<option value="/portfolio/semester/<?php print $fields['nid']->content ?>"><?php print $fields['title']->content ?></option>

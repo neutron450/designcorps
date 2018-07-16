@@ -1,0 +1,12 @@
+; $Id: messaging_debug.info,v 1.1.2.1 2010/03/30 14:54:48 jareyero Exp $
+name = Messaging debug
+description = Debugging and development utilities for messaging package.
+package = "Development"
+dependencies[] = messaging
+core = 6.x
+; Information added by drupal.org packaging script on 2010-05-18
+version = "6.x-4.0-beta5"
+core = "6.x"
+project = "notifications_extra"
+datestamp = "1274209812"
+

@@ -1,0 +1,289 @@
+<?php
+
+/**
+ * @file
+ * A CCK content field which lets you add a country to your content types;
+ * displaying country name, ISO 3166-1 alpha-2 code, ISO 3166-1 alpha-3 code or
+ * a countryicon with module Country Icons.
+ */
+
+/**
+ * Implementation of hook_theme().
+ */
+function cck_country_theme() {
+  $themes = array(
+    'cck_country_select' => array(
+      'arguments' => array('element' => NULL),
+    ),
+    'cck_country_formatter_default' => array(
+      'arguments' => array('element' => NULL),
+      'file' => 'cck_country_formatter.inc',
+    ),
+    'cck_country_formatter_code2' => array(
+      'arguments' => array('element' => NULL),
+      'file' => 'cck_country_formatter.inc',
+    ),
+    'cck_country_formatter_code3' => array(
+      'arguments' => array('element' => NULL),
+      'file' => 'cck_country_formatter.inc',
+    ),
+  );
+
+  if (module_exists('countryicons')) {
+    if (function_exists('countryicons_api_version') && countryicons_api_version() == 2.0) {
+      foreach (countryicons_get_iconsets() as $iconset) {
+        $themes['cck_country_formatter_' . $iconset->key . '_image_and_name'] = array(
+          'arguments' => array('element' => NULL),
+          'function' => 'theme_cck_country_formatter_countryicons_image_and_name',
+          'file' => 'cck_country_formatter.inc',
+        );
+        $themes['cck_country_formatter_' . $iconset->key . '_image'] = array(
+          'arguments' => array('element' => NULL),
+          'function' => 'theme_cck_country_formatter_countryicons_image',
+          'file' => 'cck_country_formatter.inc',
+        );
+        if ($iconset->sprite) {
+          $themes['cck_country_formatter_' . $iconset->key . '_sprite'] = array(
+            'arguments' => array('element' => NULL),
+            'function' => 'theme_cck_country_formatter_countryicons_sprite',
+            'file' => 'cck_country_formatter.inc',
+          );
+        }
+      }
+    }
+    else {
+      foreach (countryicons_get_iconsets() as $iconset) {
+        $themes['cck_country_formatter_' . $iconset['name'] . '_image_and_name'] = array(
+          'arguments' => array('element' => NULL),
+          'function' => 'theme_cck_country_formatter_countryicons_image_and_name',
+          'file' => 'cck_country_formatter.inc',
+        );
+        $themes['cck_country_formatter_' . $iconset['name'] . '_image'] = array(
+          'arguments' => array('element' => NULL),
+          'function' => 'theme_cck_country_formatter_countryicons_image',
+          'file' => 'cck_country_formatter.inc',
+        );
+        $themes['cck_country_formatter_' . $iconset['name'] . '_sprite'] = array(
+          'arguments' => array('element' => NULL),
+          'function' => 'theme_cck_country_formatter_countryicons_sprite',
+          'file' => 'cck_country_formatter.inc',
+        );
+      }
+    }
+  }
+
+  return $themes;
+}
+
+/**
+ * Implementation of hook_elements().
+ */
+function cck_country_elements() {
+  return array(
+    'cck_country_select' => array(
+      '#input' => TRUE,
+      '#columns' => array('value'),
+      '#delta' => 0,
+      '#process' => array('cck_country_select_process'),
+      '#autocomplete_path' => FALSE,
+      '#element_validate' => array('optionwidgets_validate'),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_field_info().
+ */
+function cck_country_field_info() {
+  return array('cck_country' => array('label' => t('Country')));
+}
+
+/**
+ * Implementation of hook_field_formatter_info().
+ */
+function cck_country_field_formatter_info() {
+  $formatters = array(
+    'default' => array(
+      'label' => 'Country name',
+      'field types' => array('cck_country'),
+    ),
+    'code2' => array(
+      'label' => '2-digit country code',
+      'field types' => array('cck_country'),
+    ),
+    'code3' => array(
+      'label' => '3-digit country code',
+      'field types' => array('cck_country'),
+    ),
+  );
+
+  if (module_exists('countryicons')) {
+    if (function_exists('countryicons_api_version') && countryicons_api_version() == 2.0) {
+      foreach (countryicons_get_iconsets() as $iconset) {
+        $formatters[$iconset->key . '_image_and_name'] = array(
+          'label' => t('countryicons @iconset image and country name', array('@iconset' => $iconset->name)),
+          'field types' => array('cck_country'),
+        );
+        $formatters[$iconset->key . '_image'] = array(
+          'label' => t('countryicons @iconset image', array('@iconset' => $iconset->name)),
+          'field types' => array('cck_country'),
+        );
+        if ($iconset->sprite) {
+          $formatters[$iconset->key . '_sprite'] = array(
+          'label' => t('countryicons @iconset sprite', array('@iconset' => $iconset->name)),
+          'field types' => array('cck_country'),
+        );
+        }
+      }
+    }
+    else {
+      foreach (countryicons_get_iconsets() as $iconset) {
+        $formatters[$iconset['name'] . '_image_and_name'] = array(
+          'label' => t('countryicons @iconset image and country name', array('@iconset' => $iconset['name'])),
+          'field types' => array('cck_country'),
+        );
+        $formatters[$iconset['name'] . '_image'] = array(
+          'label' => t('countryicons @iconset image', array('@iconset' => $iconset['name'])),
+          'field types' => array('cck_country'),
+        );
+        $formatters[$iconset['name'] . '_sprite'] = array(
+          'label' => t('countryicons @iconset sprite', array('@iconset' => $iconset['name'])),
+          'field types' => array('cck_country'),
+        );
+      }
+    }
+  }
+
+  return $formatters;
+}
+
+/**
+ * Implementation of hook_field_settings().
+ */
+function cck_country_field_settings($op, $field) {
+  switch ($op) {
+    case 'database columns':
+      return array(
+        'value' => array(
+          'type' => 'varchar',
+          'length' => 2,
+          'not null' => FALSE,
+        ),
+      );
+
+    case 'views data':
+      if (count(cck_country_allowed_values())) {
+        $data = content_views_field_views_data($field);
+        $db_info = content_database_info($field);
+        $table_alias = content_views_tablename($field);
+
+        // Filter: Add a 'many to one' filter.
+        $copy = $data[$table_alias][$field['field_name'] .'_value'];
+        $copy['title'] = t('@label (!name) - Allowed values', array('@label' => t($field['widget']['label']), '!name' => $field['field_name']));
+        $copy['filter']['handler'] = 'content_handler_filter_many_to_one';
+        unset($copy['field'], $copy['argument'], $copy['sort']);
+        $data[$table_alias][$field['field_name'] .'_value_many_to_one'] = $copy;
+        // Argument : swap the handler to the 'many to one' operator.
+        $data[$table_alias][$field['field_name'] .'_value']['argument']['handler'] = 'content_handler_argument_many_to_one';
+
+        return $data;
+      }
+  }
+}
+
+/**
+ * Implementation of hook_widget_info().
+ */
+function cck_country_widget_info() {
+  return array(
+    'cck_country_select' => array(
+      'label' => t('Select List'),
+      'field types' => array('cck_country'),
+      'multiple values' => CONTENT_HANDLE_MODULE,
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_widget().
+ */
+function cck_country_widget(&$form, &$form_state, $field, $items, $delta = 0) {
+  return array(
+    '#type' => $field['widget']['type'],
+    '#default_value' => empty($items) ? array() : $items,
+  );
+}
+
+/**
+ * Implementation of hook_content_is_empty().
+ */
+function cck_country_content_is_empty($item, $field) {
+  return empty($item['value']);
+}
+
+/**
+ * Helper function for finding the allowed values list for a cck_country field.
+ *
+ * @param $field
+ *   The field whose allowed values are requested.
+ * @param $flatten
+ *   NOT IN USE!
+ *   Optional. Use TRUE to return a flattened array (default).
+ *   FALSE can be used to support optgroups for select widgets
+ *   when allowed values list is generated using PHP code.
+ */
+function cck_country_options($field, $flatten = TRUE) {
+  if ($field['required']) {
+    return cck_country_allowed_values();
+  }
+  return array('' => t('- None -')) + cck_country_allowed_values();
+}
+
+/**
+ * Allowed values for cck_country_select.
+ *
+ * @return
+ *   array with 2-digit country code as KEY and name as VALUE.
+ */
+function cck_country_allowed_values() {
+  return countries_api_get_array();
+}
+
+/**
+ * Procces the element cck_country_select.
+ */
+function cck_country_select_process($element, $edit, &$form_state, $form) {
+  $field_name = $element['#field_name'];
+  $field = $form['#field_info'][$field_name];
+  $field_key = $element['#columns'][0];
+
+  if (is_array($element['#value']) && !array_key_exists($field_key, $element['#value'])) {
+    $element['#value'] = optionwidgets_data2form($element, $element['#default_value'], $field);
+  }
+
+  $element[$field_key] = array(
+    '#type' => 'select',
+    '#title' => $element['#title'],
+    '#description' => $element['#description'],
+    '#required' => isset($element['#required']) ? $element['#required'] : $field['required'],
+    '#multiple' => isset($element['#multiple']) ? $element['#multiple'] : $field['multiple'],
+    '#options' => cck_country_options($field, FALSE),
+    '#default_value' => isset($element['#value'][$field_key]) ? $element['#value'][$field_key] : NULL,
+  );
+
+  // Taken from optionwidgets_select_process() in optionwidgets.module:
+  // TODO for some reason putting the $field array into $form_state['storage']
+  // causes the node's hook_form_alter to be invoked twice, garbling the
+  // results. Need to investigate why that is happening (a core bug?), but
+  // in the meantime avoid using $form_state['storage'] to store anything.
+  $form_state['#field_info'][$field['field_name']] = $field;
+
+  return $element;
+}
+
+/**
+ * Theme the element cck_country_select.
+ */
+function theme_cck_country_select($element) {
+  return $element['#children'];
+}

@@ -1,0 +1,16 @@
+; $Id: notifications_comment.info,v 1.1.2.1 2010/03/25 11:54:46 jareyero Exp $
+name = "Comment subscriptions"
+description = "Extended comment subscription options to anonymous users."
+package = Notifications
+dependencies[] = notifications_anonymous
+dependencies[] = notifications_content
+dependencies[] = comment
+core = 6.x
+php = 5.x
+
+; Information added by drupal.org packaging script on 2010-05-18
+version = "6.x-4.0-beta5"
+core = "6.x"
+project = "notifications_extra"
+datestamp = "1274209812"
+

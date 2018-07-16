@@ -1,0 +1,558 @@
+<?php
+// $Id: notifications_comment.module,v 1.1.2.9 2010/05/18 17:53:27 jareyero Exp $
+/**
+ * @file
+ *   Extended comment subscription options
+ *   
+ * This feature has been modelled after comment_notify module.
+ */
+
+// Notifications comment status. Disabled
+define('NOTIFICATIONS_COMMENT_DISABLED', 0);
+// Subscribe to all comments for current node
+define('NOTIFICATIONS_COMMENT_NODE', 1);
+// Subscribe to all replies for a specific comment
+define('NOTIFICATIONS_COMMENT_COMMENT', 2);
+// When other subscriptions override this one, we don't present any option
+define('NOTIFICATIONS_COMMENT_OVERRIDE', 4);
+
+/**
+ * Implementation of hook_help()
+ */
+function notifications_comment_help($path, $arg) {
+  switch ($path) {
+    case 'admin/messaging/notifications/subscriptions/comment':   
+      $output = '<p>' . t('You can enable content types for comment subscriptions on the <a href="@notifications-content">Content subscriptions</a> settings page.', array('@notifications-content' => url('admin/messaging/notifications/content'))) . '</p>'; 
+      $output .= '<p>' . t('There are two subscription types for comment notifications:') . '<ul>';
+      $output .= '<li>' . t('<strong>Comment reply</strong> for anonymous subscriptions.') ;
+      if (!notifications_content_type_enabled(NULL, 'comment_reply')) {
+        $output .= ' ' . t('There are no content types enabled for this one.');
+      }
+      $output .= '<li>' . t('<strong>Thread reply</strong> for authenticated users.') ;
+      $output .= '</li><li>';
+      if (!notifications_content_type_enabled(NULL, 'thread_reply')) {
+        $output .= ' ' . t('There are no content types enabled for this one.');
+      }
+      $output .= '</li></ul>';
+      return $output;
+  }
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function notifications_comment_menu() {
+  // Settings page
+  $items['admin/messaging/notifications/subscriptions/comment'] = array(
+    'title' => 'Comments',
+    'description' => 'Settings for comment subscriptions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('notifications_comment_settings_form'),
+    'access arguments' => array('administer notifications'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'notifications_comment.pages.inc',
+  );
+  return $items;
+}
+/**
+ * Implementation of hook_comment().
+ */
+function notifications_comment_comment($comment, $op) {
+  global $user;
+
+  // In theory, the update or insert operations are duplicates with publish which
+  // would lead to duplicate messages.  _comment_notify_mailalert() protects against that.
+  switch ($op) {
+    case 'validate':
+      $options = $comment['notifications_comment'];
+       // We assume that if they are non-anonymous then they have a valid mail.
+       // For anonymous users, though, we verify that they entered a mail and let comment.module validate it is real.
+      if (!$user->uid && $options['notify'] && empty($comment['mail'])) {
+        form_set_error('mail', t('If you want to subscribe to comments you must supply a valid e-mail address.'));
+      }
+      break;
+    case 'update':
+    case 'insert':
+      if (!isset($comment['notifications_comment'])) {
+        return;
+      }
+      $options = $comment['notifications_comment'];
+      // For new comments, we first build up a string to be used as the identifier for the alert
+      $mail = !empty($comment['mail']) ? $comment['mail'] : NULL;
+      $notify = $options['notify'] ? $options['notify_type'] : $options['notify'];
+
+      if ($notify) {
+        if ($user->uid) {
+          $existing = notifications_comment_get_subscription($user, $comment['nid'], $comment);
+          // The user may have already changed the destination for the previous subscription
+          $destination = $existing ? $existing->get_destination() : notifications_comment_build_destination($user);
+        }
+        elseif ($destination = notifications_comment_build_destination($user, $mail)) {
+          $existing = notifications_comment_get_subscription($destination, $comment['nid'], $comment);
+        }
+
+        if (!$destination) {            
+          drupal_set_message(t('Cannot add subscription for this account'), 'warning');
+          return;
+        }
+        // If existing subscription is for nodetype we don't do anything else
+        if ($existing && $existing->type == 'nodetype') {
+          drupal_set_message(t('You are already subscribed to this content type.'));
+          return;
+        }          
+        // Build subscription and compare with existing one
+        $subscription = notifications_comment_build_subscription($destination, $notify, $comment);
+        if (!$existing) {
+          notifications_save_subscription($subscription);
+          drupal_set_message(t('Your subscription has been created.'));
+        }
+        elseif ($existing->type != $subscription->type) {
+          // Update existing subscription instead of creating a new one
+          $subscription->sid = $existing->sid;
+          $subscription->send_interval = $existing->send_interval;
+          notifications_save_subscription($subscription);
+          drupal_set_message(t('Your subscription has been updated.'));
+        }
+      }
+      elseif ($user->uid && ($existing = notifications_comment_get_subscription($user, $comment['nid'], $comment))) {
+        // We had an existing subscription we need to disable (not checked)
+        notifications_subscription_delete($existing->sid);
+        drupal_set_message(t('Your subscription has been deleted.'));
+      }
+      break;
+ 
+    case 'delete':
+      // @todo delete subscriptions for this comment
+      break;
+  }
+}
+
+/**
+ * Create subscription for this comment
+ */
+function notifications_comment_build_subscription($destination, $notify, $comment) {
+  $comment = (object)$comment;  
+
+  switch ($notify) {
+    case NOTIFICATIONS_COMMENT_NODE:
+      // Regular thread subscription
+      $subscription = notifications_build_subscription('thread');
+      break;
+    case NOTIFICATIONS_COMMENT_COMMENT:
+      // Subscription to comment thread
+      if ($destination->uid) {
+        $subscription = notifications_build_subscription('thread_reply');
+        $subscription->add_field('uid_reply', $destination->uid);
+      }
+      else {
+        $subscription = notifications_build_subscription('comment_reply');
+        $subscription->add_field('cid', $comment->cid);
+      }
+      break;
+  }
+  $subscription->add_field('nid', $comment->nid);
+  $subscription->set_destination($destination);
+  
+  return $subscription;
+}
+
+/**
+ * Build destination
+ */
+function notifications_comment_build_destination($account, $mail = NULL) {
+  if ($account->uid) {
+    return messaging_account_build_destination($account);
+  }
+  elseif ($mail) {
+    return messaging_account_build_destination($account, 'mail', $mail, 0);
+  }
+}
+
+/**
+ * Insert our checkbox, add a submit button, and populate fields.
+ */
+function notifications_comment_form_alter(&$form, &$form_state, $form_id) {
+  global $user;
+
+  // Only alter the form if it's a comment form and the user has the permission to subscribe.
+  if ($form_id == 'comment_form' && (user_access('subscribe to comments') || user_access('administer comments'))) {
+    // Only add the checkbox if this is an enabled content type
+    $node = node_load($form['nid']['#value'] ? $form['nid']['#value'] : $form['nid']['#default_value']);
+    // Add the checkbox for anonymous users and set the default based on admin settings.
+    // If anonymous user's can't enter their e-mail don't tempt them with the checkbox.
+    if (!$user->uid && empty($form['mail']) || !notifications_content_type_enabled($node->type, 'comment_reply')) {
+      return;
+    }
+    if ($user->uid && !notifications_content_type_enabled($node->type, 'thread_reply')) {
+      return;
+    }
+    // So we add the checkbox...
+    drupal_add_css(drupal_get_path('module', 'notifications_comment') .'/notifications_comment.css');
+    drupal_add_js(drupal_get_path('module', 'notifications_comment') .'/notifications_comment.js');
+
+    if ($subscription = notifications_comment_get_subscription($user, $node)) {
+      $preference = _notifications_comment_subscription_type($subscription);
+    }
+    else {
+      $preference = notifications_comment_default_option($user, $node);
+    }
+
+    // There may be already a notifications field
+    $form['notifications']['#type'] = 'fieldset';
+    $form['notifications']['#title'] = t('Notifications');
+    $form['notifications']['#collapsible'] = TRUE;
+    $form['notifications']['notifications_comment'] = array(
+      '#prefix' => '<div class="clear-block">',
+      '#suffix' => '</div>',
+      '#tree' => TRUE,
+    );
+    if ($preference == NOTIFICATIONS_COMMENT_OVERRIDE) {
+      // User is already subscribed to this content type, so let them now and nothing else to do here.
+      $form['notifications']['notifications_comment']['#value'] = t('Your are subscribed to this content type.');;
+    }
+    else {
+      $form['notifications']['notifications_comment']['notify'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Notify me when new comments are posted'),
+        '#default_value' => $preference,
+        '#disabled' => $disabled,
+      );
+      $form['notifications']['notifications_comment']['notify_type'] = array(
+        '#type' => 'radios',
+        '#options' => _notifications_comment_options(),
+        '#default_value' => $preference,
+        '#disabled' => $disabled,
+      );
+    }
+  }
+}
+
+/**
+ * Implementation of hook_notifications()
+ */
+function notifications_comment_notifications($op) {
+  switch ($op) {
+    case 'subscription types':
+      // Some types may be globally disabled (for all content types), mark as such
+      $disabled = !variable_get('notifications_content_per_type', 0);
+      // Replies to a specific comment (thread). Anonymous users need to be subscribed
+      // to specific comments to get replies for them. Not so for authenticated users.
+      $types['comment_reply'] = array(
+        'event_type' => 'node',
+        'title' => t('Comment replies'),
+        'access' => 'subscribe to comments',
+        //'page callback' => 'notifications_content_page_thread',
+        //'user page' => 'user/%user/notifications/thread',
+        'fields' => array('nid', 'cid'),
+        'description' => t('Subscribe to all replies to a comment.'),
+        'disabled' => $disabled && !notifications_content_type_enabled(NULL, 'comment_reply'),
+        'notifications_comment' => NOTIFICATIONS_COMMENT_COMMENT,
+      );
+      // When an authenticated user subscribes to all replies within a node we can
+      // do the subscription matching using other comments posted by this user.
+      $types['thread_reply'] = array(
+        'event_type' => 'node',
+        'title' => t('Thread replies'),
+        'access' => 'subscribe to comments',
+        //'page callback' => 'notifications_content_page_thread',
+        //'user page' => 'user/%user/notifications/thread',
+        'fields' => array('nid', 'uid_reply'),
+        'description' => t('Subscribe to all node comments that are replies to a user.'),
+        'disabled' => $disabled && !notifications_content_type_enabled(NULL, 'thread_reply'),
+        'notifications_comment' => NOTIFICATIONS_COMMENT_NODE,
+      );     
+      return $types;
+
+    case 'subscription fields':
+      // Information about available fields for subscriptions
+      // - format callback => will be used to convert the value into a displayable output
+      // - value callback => will be used to convert autocomplete name into field value
+      // - autocomplete path => path for autocomplete field
+      // - options callback / arguments => used to produce a drop down field
+      $fields['cid'] = array(
+        'name' => t('Comment'),
+        'field' => 'cid',
+        'type' => 'int',
+        'object_type' => 'comment'
+      );
+      // Reply to content posted by a user
+      $fields['uid_reply'] = array(
+        'name' => t('User'),
+        'field' => 'uid_reply',
+        'type' => 'int',
+        'object_type' => 'user',
+      );
+      return $fields;
+  }
+}
+
+/**
+ * Implementation of hook notifications_event()
+ */
+function notifications_comment_notifications_event($op, $event, $account = NULL) {
+  switch ($op) {
+    case 'query':
+      // Query parameters for queueing events
+      if ($event->type == 'node' && $event->action == 'comment' && 
+        ($node = $event->get_object('node')) && ($comment = $event->get_object('comment')))
+      {
+        $query = array();
+        list($cids, $uids) = _notifications_comment_get_parents($comment);
+        // Conditions: Subscribed to comment thread or to own threads
+        if ($cids) {
+          $query[]['fields']['cid'] = $cids;
+        }
+        if ($uids) {
+          $query[]['fields'] = array(
+            'nid' => $node->nid,
+            'uid_reply' => $uids,
+          );
+        }
+        return $query;
+      }
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_notifications_object_node()
+ */
+function notifications_comment_notifications_object_node($op, $node, $account = NULL) {
+  switch ($op) {
+    case 'conditions':
+      break;
+    case 'subscriptions':
+      $options = array();     
+      // Reply to specific comment for anonymous users
+      if (empty($account->uid) && notifications_content_type_enabled($node->type, 'comment_reply')) {
+        $options[] = array(
+          'name' => t('Replies to this comment'),
+          'type' => 'comment_reply',
+          'fields' => array('cid' => NULL),
+        );
+      }
+      // Reply to comments withing this thread for authenticated users
+      if (!empty($account->uid) && notifications_content_type_enabled($node->type, 'thread_reply')) { 
+        $options[] = array(
+          'name' => t('Replies to your comments'),
+          'type' => 'thread_reply',
+          'fields' => array('nid' => $node->nid, 'uid_reply' => $account->uid),
+        );
+      }     
+      return $options;
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function notifications_comment_perm() {
+  return array('administer comment notify', 'subscribe to comments');
+}
+
+/**
+ * Trigger notifications event
+ */
+function _notifications_comment_event($comment) {
+  // @todo Do we need specific events here.
+}
+
+/**
+ * Get list of comments this one is reply to
+ * 
+ * @return lis($cids, $uids)
+ */
+function _notifications_comment_get_parents($comment, $cids = array(), $uids = array()) {
+  $parents = &messaging_static(__FUNCTION__);
+  if (!isset($parents[$cid])) {
+    if (!empty($comment->thread)) {
+      // Get all the comments for this thread. The thread looks like 01.02.03.04/
+      $thread_parts = explode('.', trim($comment->thread, '/'));
+      $current = '';
+      $args = array($comment->nid);
+      foreach ($thread_parts as $part) {
+        $current .= $part;
+        $args[] = $threads[] = $current . '/';
+        $current .= '.';
+      }
+      $result = db_query("SELECT cid, uid FROM {comments} WHERE nid = %d AND thread IN (" . db_placeholders($threads, 'varchar') . ")", $args);
+      while ($parent = db_fetch_object($result)) {
+        $cids[] = $parent->cid;
+        $uids[] = $parent->uid;
+      }   
+    }
+    elseif ($comment->pid && ($parent = notifications_content_comment_load($comment->pid))) {
+      // When a comment is just created it may not have a thread set yet, we use the parent
+      $cids[] = $parent->cid;
+      $uids[] = $parent->uid;
+      list($uids, $cids) = _notifications_comment_get_parents($parent, $cids, $uids);
+    }
+    $parents[$cid] = array(array_unique($cids), array_unique($uids));
+  } 
+  return $parents[$cid];
+}
+
+/**
+ * Mapping from comment cid to title
+ */
+function notifications_comment_cid2title($cid, $html = FALSE) {
+  if ($comment = notifications_content_comment_load($cid)) {
+    return $html ? l($comment->subject, "node/$comment->nid", array('fragment' => "comment-$comment->cid")) : check_plain($comment->subject);
+  }
+  else {
+    return t('Not found');
+  }
+}
+/**
+ * Provide an array of available options for notification on a comment.
+ * 
+ * @param $disabled
+ *   Whether to add the disabled option too
+ */
+function _notifications_comment_options($disabled = FALSE) {
+  $options = array(
+    NOTIFICATIONS_COMMENT_NODE     => t('All comments'),
+    NOTIFICATIONS_COMMENT_COMMENT  => t('Replies to my comment')
+  );
+  if ($disabled) {
+    $options[NOTIFICATIONS_COMMENT_DISABLED] = t('No notifications');
+  }
+  return $options;
+}
+
+/**
+ * Get 'notifications_comment' type from regular subscription type
+ */
+function _notifications_comment_subscription_type($subscription) {
+  return array_search($subscription->type, array(
+    NOTIFICATIONS_COMMENT_NODE => 'thread',
+    NOTIFICATIONS_COMMENT_COMMENT => 'thread_reply',
+    NOTIFICATIONS_COMMENT_OVERRIDE => 'nodetype'
+  ));
+}
+
+/**
+ * Implementation of hook_user().
+ */
+function notifications_comment_user($type, &$edit, &$user, $category = NULL) {
+  switch ($type) {
+    case 'form':
+      if ($category == 'account' && user_access('subscribe to comments', $user)) {
+        $form = array();
+        /*
+        $form['notifications_comment'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Comment follow-up notification settings'),
+          '#weight' => 4,
+          '#collapsible' => TRUE
+        );
+        */
+        //$default_value = isset($edit['notifications_comment']) ? $edit['notifications_comment'] : variable_get('notifications_comment', NOTIFICATIONS_COMMENT_DISABLED);
+        $default_value = notifications_comment_default_option($user);
+        // Only show the node followup UI if the user has permission to create nodes.
+        $nodes = FALSE;
+        foreach (node_get_types() as $type) {
+          if (user_access('create '. $type->type .' content')) {
+            $nodes = TRUE;
+            break;
+          }
+        }
+        if (user_access('administer nodes') || $nodes) {
+          $form['messaging']['notifications_comment_notify'] = array(
+            '#type' => 'checkbox',
+            '#title' => t('Receive node follow-up notification e-mails'),
+            '#default_value' => $default_value,
+            '#description' => t('Check this box to receive an e-mail notification for follow-ups on your nodes (pages, forum topics, etc). You can not disable notifications for individual threads.')
+          );
+        }
+        else {
+          $form['messaging']['notifications_comment_notify'] = array(
+            '#type' => 'hidden',
+            '#value' => NOTIFICATIONS_COMMENT_DISABLED,
+          );
+        }
+        $form['messaging']['notifications_comment_notify'] = array(
+          '#type' => 'select',
+          '#title' => t('Receive comment follow-up notification e-mails'),
+          '#default_value' => $default_value,
+          '#options' => _notifications_comment_options(TRUE),
+          '#description' => t("Check this box to receive e-mail notification for follow-up comments to comments you posted. You can later disable this on a post-by-post basis... so if you leave this to YES, you can still disable follow-up notifications for comments you don't want follow-up mails anymore - i.e. for very popular posts.")
+        );
+        return $form;
+      }
+      break;
+  }
+}
+
+/**
+ * Get default option for user account
+ * 
+ * @param $account
+ *   User account that will be subscribed
+ * @param $node
+ *   Node object if we want to check existing subscriptions too
+ */
+function notifications_comment_default_option($account, $node = NULL) {
+  if ($account->uid) {
+    if ($node && ($value = notifications_comment_get_subscription($account, $node))) {
+      return $value;
+    }
+    else {
+      return isset($account->notifications_comment_notify) ? $account->notifications_comment_notify : variable_get('notifications_comment_default_notify', NOTIFICATIONS_COMMENT_NODE);
+    }
+  }
+  else {
+    return variable_get('notifications_comment_anonymous_notify', NOTIFICATIONS_COMMENT_NODE);
+  }
+}
+
+/**
+ * Get comment subscriptions to node.
+ * 
+ * It will return a Subscription object with a 'notifications_comment' property
+ * 
+ * @param $destination
+ *   User account or messaging destination
+ * @param $node
+ *   Node object or nid
+ * @param $comment
+ *   Optional comment when we are looking for subscriptions after the comment was posted
+ */
+function notifications_comment_get_subscription($destination, $node, $comment = NULL) {
+  if ($destination->uid) {
+    $params = array('uid' => $destination->uid);
+  }
+  elseif($comment) {
+    $params = array('mdid' => $destination->mdid);
+  }
+  if (!empty($params)) {
+    // Check first for nodetype subscriptions
+    $node = is_object($node) ? $node : node_load($node);
+    if ($subs = notifications_get_subscriptions($params + array('type' => 'nodetype'), array('type' => $node->type))) {
+      return current($subs);
+    }
+    // Not for 'comment reply' as every comment needs a new subscription
+    elseif ($subs = notifications_get_subscriptions($params + array('type' => array('thread', 'thread_reply')), array('nid' => $node->nid), FALSE)) {
+      return current($subs);
+    }
+  }
+  /*
+    $node = is_object($node) ? $node : node_load($node);
+    if ($subs = notifications_user_get_subscriptions($destination->uid, 'node', $node)) {
+      foreach ($subs as $subscription) {
+        if ($subscription->is_instance() && _notifications_comment_subscription_type($subscription->type)) {
+          return $subscription;
+        }
+      }
+    }
+  }
+  elseif($comment) {
+    $params = array('mdid' => $destination->mdid);
+    // For anonymous destinations we can just looks for subscriptions after the comment
+    $nid = is_object($node) ? $node->nid : $node;
+    $subs = notifications_get_subscriptions(array('mdid' => $destination->mdid, 'type' => array('thread', 'comment_reply')), array('nid' => $nid), FALSE);
+    return $subs ? current($subs) : NULL;
+  }
+  */
+}

@@ -1,0 +1,11 @@
+name = User Reference Access
+description = Use CCK User Reference fields to grant/deny access on nodes.
+core = 6.x
+dependencies[] = userreference
+
+; Information added by drupal.org packaging script on 2011-04-12
+version = "6.x-1.2"
+core = "6.x"
+project = "userref_access"
+datestamp = "1302610317"
+

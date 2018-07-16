@@ -1,0 +1,6 @@
+; $Id: dc_notifications.info, v 1.0 2011/03/27 23:59:59 kevinwo Exp $
+name = Design Corps Notifications
+description = Custom, automatic notification subscriptions
+core = 6.x
+
+version = "6.x-1.0-dev"

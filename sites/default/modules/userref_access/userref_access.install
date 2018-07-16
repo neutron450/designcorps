@@ -1,0 +1,75 @@
+<?php
+
+/**
+ * Installation and update functions for the the 
+ *  userref_access module. 
+ *
+ * @file: userref_access.install
+ * @author: Elliott Foster
+ * @copyright: NewMBC 2010
+ */
+
+/**
+ * Implementation of hook_schema()
+ */
+function userref_access_schema() {
+  $schema = array();
+
+  $schema['userref_access'] = array(
+    'description' => 'Table to track user reference access flags',
+    'fields' => array(
+      'field_id' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'access' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'grant_view' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'grant_edit' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'grant_delete' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('field_id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install()
+ */
+function userref_access_install() {
+  drupal_install_schema('userref_access');
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function userref_access_uninstall() {
+  drupal_uninstall_schema('userref_access');
+}
+

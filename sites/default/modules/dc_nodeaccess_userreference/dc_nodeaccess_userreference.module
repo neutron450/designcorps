@@ -1,0 +1,71 @@
+<?php
+// $Id$
+/**
+* @file
+* Design Corps Node Access User Reference.
+* By Kevin Wolkober
+*/
+
+/*******************************************************************************
+* Hook Functions (Drupal)
+******************************************************************************/
+
+/**
+* Implementation of hook_form_alter().
+*
+* This lets you make changes to any form in the site. You can alter, remove
+* or add form elements. You can also alter the validation and submission
+* behavior. The name will always be modulename_form_alter.
+*/
+/* function dc_nodeaccess_userreference_node_access($op, $node) {
+	print_r($op);
+} */
+
+function dc_nodeaccess_userreference_menu_alter($items) {
+  //$items['node/%node']['access callback'] = 'dc_nodeaccess_userreference_node_access';
+}
+
+function dc_nodeaccess_userreference_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+	if ($node->type == 'milestone') {
+		switch ($op) {
+			case 'insert':
+				global $user;
+				$project_node = node_load($node->field_project[0]['nid']);
+	  			$ref_users = explode(', ', $project_node->field_referenced_users[0]['value']);
+				// Following lines copied straight from Node Access module
+				foreach ($ref_users as $uid) {
+			        // check if a record already exists
+			        $check_result = db_fetch_array(db_query("SELECT COUNT(*) AS count FROM {node_access_user} WHERE nid = '%d' AND uid = %d", $node->nid, $uid));
+			        // if a record exists update the grant option
+			        if ($check_result['count'] != 0) {
+			          db_query("UPDATE {node_access_user} SET grant_view = 1 WHERE nid = '%d' AND uid = %d", $node->nid, $uid);
+			          // if no roles where updated insert a new record
+			        }
+			        else {
+			          db_query("INSERT INTO {node_access_user} (nid, uid, realm, grant_view) VALUES (%d, %d, 'node access nacl', 1)", $node->nid, $uid);
+			        }
+			    }
+				break;
+		}
+	}
+}
+
+/* function dc_nodeaccess_userreference_node_access($op, $node) {
+  if ($node->type == 'milestone') {
+	  global $user;
+	  $project_node = node_load($node->field_project[0]['nid']);
+	  $ref_users = explode(', ', $project_node->field_referenced_users[0]['value']);
+	
+	  if (in_array($user->uid, $ref_users) ||
+		  in_array("admin", $user->roles) ||
+		  $user->uid == 1) {
+			return TRUE;
+	  } else {
+			return FALSE;
+	  }
+  }
+
+  // Default, let Drupal handle it.
+  return node_access($op, $node);
+} */
+?>

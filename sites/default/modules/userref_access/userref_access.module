@@ -1,0 +1,199 @@
+<?php
+
+/**
+ * This module uses CCK User Reference fields to
+ *  grant/deny access to nodes.
+ * 
+ * @file: userref_access.modules
+ * @author: Elliott Foster
+ * @copyright: NewMBC 2010
+ */
+
+/**
+ * Implementation of hook_enable()
+ */
+function userref_access_enable() {
+  node_access_needs_rebuild(TRUE);
+}
+
+/**
+ * Implementation of hook_disable()
+ */
+function userref_access_disable() {
+  node_access_rebuild();
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function userref_access_menu() {
+  $items = array();
+
+  $items['userref_access/js'] = array(
+    'page callback' => 'userref_access_js',
+    'access arguments' => array('administer content types'),
+    'file' => 'userref_access.js.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function userref_access_form_content_field_edit_form_alter(&$form, &$form_state) {
+  if ($form['#field']['type'] != 'userreference') {
+    return;
+  }
+
+  $acc = db_fetch_object(db_query("SELECT * FROM {userref_access} WHERE field_id='%s'", $form['#field']['field_name']));
+  $form['field']['userref_access'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use user reference access control'),
+    '#default_value' => $acc->access,
+    '#description' => t('Enabling this will limit view access to the author and referenced users'),
+    '#ahah' => array(
+      'path' => 'userref_access/js',
+      'wrapper' => 'userref-access-perm-wrapper',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ),
+  );
+
+  if ($acc && $acc->access) {
+    $form['field']['userref_access_perms'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Permissions'),
+      '#options' => array(1 => t('View'), 2 => t('Update'), 4 => t('Delete')),
+      '#default_value' => array($acc->grant_view, ($acc->grant_edit * 2), ($acc->grant_delete * 4)),
+      '#description' => t('Define which permissions will be granted on the node. If left blank no access will be given'),
+      '#prefix' => '<div id="userref-access-perm-wrapper">',
+      '#suffix' => '</div>',
+    );
+  }
+  else {
+    $form['field']['userref_access']['#suffix'] = '<div id="userref-access-perm-wrapper"></div>';
+  }
+
+  $form['#submit'][] = 'userref_access_save_access';
+}
+
+function userref_access_save_access($form, &$form_state) {
+  db_query("DELETE FROM {userref_access} WHERE field_id='%s'", $form['#field']['field_name']);
+  $acc = new stdClass();
+  $acc->field_id = $form['#field']['field_name'];
+  $acc->access = $form_state['values']['userref_access'];
+  $acc->grant_view = 0;
+  $acc->grant_edit = 0;
+  $acc->grant_delete = 0;
+
+  if (is_array($form_state['values']['userref_access_perms'])) {
+    if (in_array(1, $form_state['values']['userref_access_perms'])) {
+      $acc->grant_view = 1;
+    }
+    if (in_array(2, $form_state['values']['userref_access_perms'])) {
+      $acc->grant_edit = 1;
+    }
+    if (in_array(4, $form_state['values']['userref_access_perms'])) {
+      $acc->grant_delete = 1;
+    }
+  }
+
+  drupal_write_record('userref_access', $acc);
+
+  // rebuild node access
+  node_access_rebuild();
+}
+
+/**
+ * Implementation of hook_nodeapi()
+ */
+function userref_access_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  // it has been observered that node access isn't changed on
+  // updates so we need to force it through here
+  if ($op == 'update') {
+    $fields = content_fields(NULL, $node->type);
+    foreach ($fields as $name => $field) {
+      $acc = db_fetch_object(db_query("SELECT * FROM {userref_access} WHERE field_id='%s'", $name));
+      if ($acc && $acc->access) {
+        node_access_write_grants($node, userref_access_node_access_records($node));
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_node_grants()
+ */
+function userref_access_node_grants($account, $op) {
+  static $grants;
+
+  // If these grants are for the passed in account and they're cached, return them.
+  if (isset($grants['userref_access_author']) && $grants['userref_access_author'][0] == $account->uid) {
+    return $grants;
+  }
+
+  $grants = array();
+
+  // get all the user reference fields so we can create grant entries
+  $types = node_get_types();
+  foreach ($types as $k => $type) {
+    $fields = content_fields(NULL, $type->type);
+
+    foreach ($fields as $name => $field) {
+      $acc = db_fetch_object(db_query("SELECT * FROM {userref_access} WHERE field_id='%s'", $name));
+      if ($acc && $acc->access) {
+        if (is_array($grants['userref_access_' . $name]) && in_array($account->uid, $grants['userref_access_' . $name])) {
+          continue;
+        }
+        $grants['userref_access_' . $name][] = $account->uid;
+      }
+    }
+  }
+
+  // the node author can do it all
+  $grants['userref_access_author'] = array($account->uid);
+
+  return $grants;  
+}
+
+/**
+ * Implementation of hook_node_access_records()
+ */
+function userref_access_node_access_records($node) {
+  $grants = array();
+  $author = user_load($node->uid);
+
+  // be absolutely sure the full node object is built so we get CCK stuff too
+  $fields = content_fields(NULL, $node->type);
+
+  foreach ($fields as $name => $field) {
+    $acc = db_fetch_object(db_query("SELECT * FROM {userref_access} WHERE field_id='%s'", $name));
+    if ($acc && $acc->access && is_array($node->$name)) {
+      foreach ($node->$name as $ref) {
+        $grants[] = array(
+          'realm'         => 'userref_access_' . $name,
+          'gid'           => $ref['uid'],
+          'grant_view'    => $acc->grant_view,
+          'grant_update'  => $acc->grant_edit,
+          'grant_delete'  => $acc->grant_delete
+        );
+      }
+    }
+  }
+
+  if (count($grants)) {
+    $grants[] = array(
+      'realm'         => 'userref_access_author',
+      'gid'           => $author->uid,
+      'grant_view'    => TRUE,
+      'grant_update'  => (user_access('edit own ' . $node->type . ' content', $author) || user_access('edit any ' . $node->type . ' content', $author) || user_access('administer nodes', $author)),
+      'grant_delete'  => (user_access('delete own ' . $node->type . ' content', $author) || user_access('delete any ' . $node->type . ' content', $author) || user_access('administer nodes', $author))
+    );
+  }
+
+  return $grants;
+}
+

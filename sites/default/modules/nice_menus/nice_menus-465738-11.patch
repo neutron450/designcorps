@@ -1,0 +1,99 @@
+Index: nice_menus.module
+===================================================================
+--- nice_menus.module	(Revision 36)
++++ nice_menus.module	(Revision 44)
+@@ -239,6 +239,27 @@
+ }
+ 
+ /**
++ * Builds the active trail from the page's menu data.
++ *
++ * @param $page_menu
++ *   The menu data for a page.
++ * @return
++ *   An array of parent menu item ids.
++ */
++function nice_menus_build_page_trail($page_menu) {
++  $trail = array();
++ foreach ($page_menu as $item) {
++    if ($item['link']['in_active_trail']) {
++      $trail[] = $item['link']['mlid'];
++    }
++    if ($item['below']) {
++      $trail = array_merge($trail, nice_menus_build_page_trail($item['below']));
++    }
++  }
++  return $trail;
++}
++
++/**
+  * Builds the final nice menu.
+  *
+  * @param $menu_name
+@@ -258,6 +279,12 @@
+   // Load the full menu array.
+   $menu = isset($menu) ? $menu : menu_tree_all_data($menu_name);
+ 
++  if (isset($menu)) {
++    $page_menu = menu_tree_page_data($menu_name);
++    $trail = nice_menus_build_page_trail($page_menu);
++    unset($page_menu);
++  }
++  
+   // For custom $menus and menus built all the way from the top-level we
+   // don't need to "create" the specific sub-menu and we need to get the title
+   // from the $menu_name since there is no "parent item" array.
+@@ -287,7 +314,7 @@
+   $output['subject'] = $title;
+ 
+   if ($menu) {
+-    $output['content'] .= theme('nice_menu_build', $menu);
++    $output['content'] .= theme('nice_menu_build', $menu, $trail);
+   }
+ 
+   return $output;
+@@ -299,7 +326,7 @@
+  * @param $menu
+  *   Menu array from which to build the nested lists.
+  */
+-function theme_nice_menu_build($menu) {
++function theme_nice_menu_build($menu, $trail) {
+   $output = '';
+ 
+   foreach ($menu as $menu_item) {
+@@ -316,10 +343,17 @@
+       // If it has children build a nice little tree under it.
+       if ((!empty($menu_item['link']['has_children'])) && (!empty($menu_item['below']))) {
+         // Keep passing children into the function 'til we get them all.
+-        $children = theme('nice_menu_build', $menu_item['below']);
++        $children = theme('nice_menu_build', $menu_item['below'], $trail);
+         // Set the class to parent only of children are displayed.
+         $parent_class = $children ? 'menuparent ' : '';
+-        $output .= '<li id="menu-'. $mlid .'" class="'. $parent_class . $path_class .'">'. theme('menu_item_link', $menu_item['link']);
++        // check if this item is in the active trail
++        if ($trail && in_array($mlid, $trail)) {
++          $trail_class = 'active-trail ';
++        }
++        else {
++          $trail_class = '';
++        }
++        $output .= '<li id="menu-'. $mlid .'" class="'. $parent_class . $trail_class . $path_class .'">'. theme('menu_item_link', $menu_item['link']);
+         // Build the child UL only if children are displayed for the user.
+         if ($children) {
+           $output .= '<ul>';
+@@ -329,7 +363,14 @@
+         $output .= "</li>\n";
+       }
+       else {
+-        $output .= '<li id="menu-'. $mlid .'" class="'. $path_class .'">'. theme('menu_item_link', $menu_item['link']) .'</li>'."\n";
++        // check if this item is in the active trail
++        if ($trail && in_array($mlid, $trail)) {
++          $trail_class = 'active-trail ';
++        }
++        else {
++          $trail_class = '';
++        }
++        $output .= '<li id="menu-'. $mlid .'" class="'. $trail_class . $path_class .'">'. theme('menu_item_link', $menu_item['link']) .'</li>'."\n";
+       }
+     }
+   }

@@ -1,0 +1,6 @@
+; $Id: dc_user_registration.info, v 1.0 2011/04/05 23:59:59 kevinwo Exp $
+name = Design Corps User Registration
+description = Conditional field configuration and validation for user registration based on client and student roles 
+core = 6.x
+
+version = "6.x-1.0-dev"

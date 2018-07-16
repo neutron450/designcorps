@@ -1,0 +1,50 @@
+<?php
+
+/**
+* Implementation of hook_form_alter().
+*/
+
+function dc_login_block_init() {
+  drupal_add_js(drupal_get_path('module', 'dc_login_block').'/dc_login_block.js', 'external', 'footer');
+  drupal_add_css(drupal_get_path('module', 'dc_login_block').'/dc_login_block.css');
+}
+
+function dc_login_block_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'user_login_block') {
+  
+    $form['submit']['#value'] = t('go');
+         
+    $items = array();
+         
+    $items[] = l(t('Forgot password?'), 'user/password', array('attributes' => array('title' => t('Forgot password?'))));
+    $form['links'] = array('#value' => theme('item_list', $items));
+    return $form;
+  }
+}
+
+function dc_login_block_block($op = 'list', $delta=0) {
+  global $dc_login_block;
+    $block = array();
+    if($op == 'list') {
+      $block[0]["info"] = t('Design Corps Login Block');
+    } else if ($op == 'view') {
+      if (variable_get($dc_login_block.'_show_title', '1')==true) 
+        $block['subject'] = ucfirst($dc_login_block);
+        $block['content'] = "";
+        global $user;
+        if ($user->uid) {
+          // $block['content'] .= '<p class="login_text"><b>Logged in as: ';
+          //           $block['content'] .= l($user->name,'user/'.$user->uid).' | ';
+          //           $block['content'] .= l("logout","logout");
+          //           $block['content'] .= "</p>";
+        }
+        else {
+          $block['content'] .= '<p class="active">Login</p>';
+          $block['content'] .= drupal_get_form('user_login_block');
+        } 
+        $block['content'] .= '<p><a href="/contact">Contact</a></p>
+                             <p><a href="/credits">Credits</a></p>';
+    }
+  return $block;
+}
+?>

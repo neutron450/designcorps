@@ -1,0 +1,309 @@
+<?php
+// $Id$
+/**
+* @file
+* Design Corps User Registration.
+* By Kevin Wolkober (kevin@thislooksnice.com)
+*/
+
+/*******************************************************************************
+* Hook Functions (Drupal)
+******************************************************************************/
+
+/**
+* Implementation of hook_form_alter().
+*
+* This lets you make changes to any form in the site. You can alter, remove
+* or add form elements. You can also alter the validation and submission
+* behavior. The name will always be modulename_form_alter.
+*/
+/* function dc_user_registration_node_access($op, $node) {
+	print_r($op);
+} */
+
+function dc_user_registration_form_alter(&$form, $form_state, $form_id) {
+  switch ($form_id) {
+	case 'user_register':
+		if (user_is_anonymous()) {
+			if (arg(2) == 'student') {
+				$form['#validate'] = array('dc_user_registration_student_validate');
+			} else if (arg(2) == 'client') {
+				$form['#validate'] = array('dc_user_registration_client_validate');
+			}
+		}	
+		break;
+
+  	case 'profile_node_form':
+		if (user_is_anonymous()) {
+			if (arg(2) == 'student') {
+				//$form['field_profile_role']['#default_value'][0]['value'] = '3';
+				$form['#after_build'][] = 'dc_user_registration_student_after_build';
+				//print("<pre>");
+				//print_r($form['field_profile_semester']);
+				//print("</pre>");
+				//$form['#validate'] = array('dc_user_registration_student_validate');
+			} else if (arg(2) == 'client') {
+				//$form['field_profile_role']['#default_value'][0]['value'] = '4';
+				$form['#after_build'][] = 'dc_user_registration_client_after_build';
+				//$form['field_profile_semester']['#required'] = FALSE;
+			}
+		} else {
+			if ($form['#node']->uid != nil) {
+				$ref_user = user_load($form['#node']->uid);
+			} else {
+				global $user;
+				$ref_user = user_load($user->uid);
+			}
+				
+			if (in_array("student", $ref_user->roles)) {
+				//if (empty($form['field_profile_role']['#default_value'][0]['value'])) {
+				//	$form['field_profile_role']['#default_value'][0]['value'] = '3';
+				//}
+				$form['user_type'] = array(
+				  '#value' => 'student',
+				);
+				$form['#after_build'][] = 'dc_user_registration_student_after_build';
+				$form['#validate'] = array('dc_user_registration_student_validate');
+			} else if (in_array("client", $ref_user->roles)) {
+				//if (empty($form['field_profile_role']['#default_value'][0]['value'])) {
+				//	$form['field_profile_role']['#default_value'][0]['value'] = '4';
+				//}
+				$form['user_type'] = array(
+				  '#value' => 'client',
+				);
+				$form['#after_build'][] = 'dc_user_registration_client_after_build';
+				$form['#validate'] = array('dc_user_registration_client_validate');
+			} else if (in_array("admin", $ref_user->roles)) {
+				//if (empty($form['field_profile_role']['#default_value'][0]['value'])) {
+				//	$form['field_profile_role']['#default_value'][0]['value'] = '4';
+				//}
+				$form['user_type'] = array(
+				  '#value' => 'admin',
+				);
+			}
+		}
+		
+		break;
+  }
+}
+
+
+/**
+* Custom after_build callback handler.
+*/
+
+function dc_user_registration_student_after_build($form, &$form_state) {	
+	// Get rid of 'N/A' values since Drupal thinks these fields are optional, but they're not!
+	unset($form['field_profile_semester_student']['value']['#options']['']);
+	unset($form['field_profile_semester_student']['value']['']);
+	unset($form['field_profile_credits']['value']['#options']['']);
+	unset($form['field_profile_credits']['value']['']);
+	unset($form['field_profile_rep_work_approved']['value']['#options']['']);
+	unset($form['field_profile_rep_work_approved']['value']['']);
+	
+	// Replace select menu empty value labels (i.e. - None -) with fancier labels
+	$form['field_profile_concentration']['value']['#options'][''] = '- Select a concentration -';
+	
+	return $form;
+}
+
+function dc_user_registration_client_after_build($form, &$form_state) {
+	unset($form['field_profile_501c3_status']['value']['#options']['']);
+	unset($form['field_profile_501c3_status']['value']['']);
+	unset($form['field_profile_rep_work_approved']['value']['#options']['']);
+	unset($form['field_profile_rep_work_approved']['value']['']);
+	
+	return $form;
+}
+
+
+/**
+* Validation Station(tm) - Student Registration
+*/
+
+function dc_user_registration_student_validate($form, &$form_state) {
+	//print_r($form_state['values']['form_token']);
+	if (empty($form_state['values']['field_profile_address_1_primary'][0]['value'])) {
+		form_set_error('field_profile_address_1_primary', t('Address 1 field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_city_primary'][0]['value'])) {
+		form_set_error('field_profile_city_primary', t('City field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_state_primary'][0]['value'])) {
+		form_set_error('field_profile_state_primary', t('State field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_postal_code_primar'][0]['value'])) {
+		form_set_error('field_profile_postal_code_primar', t('Zip field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_phone_primary'][0]['number'])) {
+		form_set_error('field_profile_phone_primary', t('Phone field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_semester_student'][0]['value'])) {
+		//$form['field_profile_semester']['#required'] = TRUE;
+		/* print("<pre>");
+		print_r($form_state['values']);
+		print("</pre>"); */
+		form_set_error('field_profile_semester_student', t('Semester field is required'));
+		//form_set_value($element, 0, $form_state);
+	}
+
+	if (empty($form_state['values']['field_profile_concentration'][0]['value'])) {
+		form_set_error('field_profile_concentration', t('Concentration field is required'));
+	}
+
+	if (empty($form_state['values']['field_profile_credits'][0]['value'])) {
+		form_set_error('field_profile_credits', t('Credits field is required'));
+	}
+	
+	/* if (isset($_SESSION['messages'])) {
+		$_SESSION['messages'] = str_replace("<li> field is required.</li>", "", $_SESSION['messages']);
+	} */
+}
+
+
+/**
+* Validation Station(tm) - Client Registration
+*/
+
+function dc_user_registration_client_validate($form, &$form_state) {
+	//print_r($form_state['values']);
+	
+	// Organization fieldset
+	if (empty($form_state['values']['field_profile_name_org'][0]['value'])) {
+		form_set_error('field_profile_name_org', t('Name field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_address_1_org'][0]['value'])) {
+		form_set_error('field_profile_address_1_org', t('Address 1 field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_city_org'][0]['value'])) {
+		form_set_error('field_profile_city_org', t('City field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_state_org'][0]['value'])) {
+		form_set_error('field_profile_state_org', t('State field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_postal_code_org'][0]['value'])) {
+		form_set_error('field_profile_postal_code_org', t('Zip field is required'));
+	}
+	
+	// Primary Contact Phone
+	if (empty($form_state['values']['field_profile_phone_primary'][0]['number'])) {
+		form_set_error('field_profile_phone_primary', t('Phone field is required'));
+	}
+	
+	// Semester
+	if (empty($form_state['values']['field_profile_semester_client'][0]['value'])) {
+		form_set_error('field_profile_semester_client', t('Semester field is required'));
+	}
+	
+	// Design Brief fieldset
+	if (empty($form_state['values']['field_profile_org_description'][0]['value'])) {
+		form_set_error('field_profile_org_description', t('Organization description field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_mission'][0]['value'])) {
+		form_set_error('field_profile_mission', t('Organization mission field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_501c3_status'][0]['value'])) {
+		form_set_error('field_profile_501c3_status', t('501c3 status field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_project_descriptio'][0]['value'])) {
+		form_set_error('field_profile_project_descriptio', t('Project overview field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_objectives'][0]['value'])) {
+		form_set_error('field_profile_objectives', t('Project objectives field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_single_message'][0]['value'])) {
+		form_set_error('field_profile_single_message', t('Single message field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_creative_consider'][0]['value'])) {
+		form_set_error('field_profile_creative_consider', t('Creative considerations/constraints field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_existing_guideline'][0]['value'])) {
+		form_set_error('field_profile_existing_guideline', t('Existing Guidelines field is required'));
+	}
+	
+	if (empty($form_state['values']['field_profile_comp_context_ind'][0]['value'])) {
+		form_set_error('field_profile_comp_context_ind', t('Competition/Context/Industry field is required'));
+	}
+	
+	// Deliverables
+	if (empty($form_state['values']['field_profile_deliverables'][0]['value'])) {
+		form_set_error('field_profile_deliverables', t('Deliverables field is required'));
+	}
+	
+	// Audience
+	if (empty($form_state['values']['field_profile_audience'][0]['value'])) {
+		form_set_error('field_profile_audience', t('Audience field is required'));
+	}
+	
+	// Timeline/Deadline
+	if (empty($form_state['values']['field_profile_timeline_deadline'][0]['value'])) {
+		form_set_error('field_profile_timeline_deadline', t('Timeline/Deadline field is required'));
+	}
+	
+	// Approvals
+	if (empty($form_state['values']['field_profile_approvals'][0]['value'])) {
+		form_set_error('field_profile_approvals', t('Approvals field is required'));
+	}
+	
+	// Vendors fieldset
+	/* if (empty($form_state['values']['field_profile_vendor_contact'][0]['value'])) {
+		form_set_error('field_profile_vendor_contact', t('Contact Info field is required'));
+	} */
+}
+
+function dc_user_registration_theme($existing, $type, $theme, $path) {
+  return array(
+    'profile_node_form' => array(
+      'arguments' => array('form' => NULL),
+	  'template' => 'node-profile-edit',
+    ),
+  );
+}
+
+/* function _dc_user_registration_field_profile_semester_validate($element, &$form_state) {
+  if (empty($element['#value']) || $element['#value'] == '') {
+	form_error($element, t('The number must be more than 10.'));
+    //form_set_value($element, 0, $form_state);
+  }
+} */
+
+/* function dc_user_registration_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+
+	if ($node->type == 'milestone') {
+		switch ($op) {
+			case 'insert':
+				$project_node = node_load($node->field_profile_project[0]['nid']);
+				$ref_users = explode(', ', $project_node->field_profile_referenced_users[0]['value']);
+				
+				foreach ($ref_users as $ref_user) {
+					$fields = array('nid' => $node->nid);
+					$subscription = (object)array(
+					  'uid' => $ref_user,
+					  'type' => 'thread',
+					  'fields' => $fields,
+					  'send_interval' => 0,
+					  'send_method' => 'mail',
+					  'event_type' => notifications_subscription_types('thread', 'event_type'),
+					);
+					notifications_save_subscription($subscription);
+				}
+				break;
+		}
+	}
+} */
