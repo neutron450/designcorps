@@ -1006,6 +1006,23 @@ function drupal_set_message($message = NULL, $type = 'status', $repeat = TRUE) {
     }
   }
 
+  /* TODO find a better way to hide the warnings *///
+  foreach($_SESSION['messages'][$type] as $key=>$value) {
+	if (strpos($value, 'Declaration of') > 0) {
+      unset($_SESSION['messages'][$type][$key]);
+	}
+	if (strpos($value, 'Invalid argument supplied') > 0) {
+      unset($_SESSION['messages'][$type][$key]);
+	}
+	if (trim($value) == '') {
+      unset($_SESSION['messages'][$type][$key]);
+	}
+  }
+
+  if (count($_SESSION['messages'][$type])==0) {
+  	unset($_SESSION['messages'][$type]);
+  }
+
   // messages not set when DB connection fails
   return isset($_SESSION['messages']) ? $_SESSION['messages'] : NULL;
 }

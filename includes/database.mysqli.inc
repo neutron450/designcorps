@@ -141,6 +141,21 @@ function _db_query($query, $debug = 0) {
   }
 
   if (!mysqli_errno($active_db)) {
+
+// 	while ($rows = mysqli_fetch_assoc($result)) {
+// 		foreach($rows as $row) {
+// 			$stuff = print_r($row, true);
+// 			if (strpos($stuff,'ignore--this') > 0) {
+// 				echo '<p><br>'.$value;
+// 			}
+// 		}
+// 	}
+
+	//echo '<p><br>'.$res;
+  	//echo '<p><br>'.strpos($rows,'ignore--this');
+	///echo '<p><br>'.$query.'<p><br>'.$res;
+	///print_r($result);
+
     return $result;
   }
   else {
