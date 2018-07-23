@@ -1014,6 +1014,9 @@ function drupal_set_message($message = NULL, $type = 'status', $repeat = TRUE) {
 	if (strpos($value, 'Invalid argument supplied') > 0) {
       unset($_SESSION['messages'][$type][$key]);
 	}
+	if (strpos($value, 'modifier is no longer supported') > 0) {
+      unset($_SESSION['messages'][$type][$key]);
+	}
 	if (trim($value) == '') {
       unset($_SESSION['messages'][$type][$key]);
 	}
