@@ -30,6 +30,13 @@
  *   executed correctly.
  */
 function db_query($query) {
+
+ 	/// SELECT n.title AS title FROM {node} n WHERE n.nid = %s
+	// 	if (stripos($query,'n.title') > '0') {
+	// 		echo '<p><p>'.$query;
+	// 		echo '<p><p>'.print_r(func_get_args());
+	// 	}
+
   $args = func_get_args();
   array_shift($args);
   $query = db_prefix_tables($query);
@@ -38,6 +45,12 @@ function db_query($query) {
   }
   _db_query_callback($args, TRUE);
   $query = preg_replace_callback(DB_QUERY_REGEXP, '_db_query_callback', $query);
+
+  	/// SELECT n.title AS title FROM {node} n WHERE n.nid = %s
+	// 	if (stripos($query,'n.title') > '0') {
+	// 		echo '<p><p>'.$query;
+	// 	}
+
   return _db_query($query);
 }
 

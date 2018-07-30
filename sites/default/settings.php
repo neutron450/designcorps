@@ -169,8 +169,10 @@ ini_set('session.use_only_cookies', 1);
 ini_set('session.use_trans_sid',    0);
 ini_set('url_rewriter.tags',        '');
 ini_set('memory_limit',             '128M');
-ini_set('error_reporting', E_ERROR & ~E_WARNING);
-ini_set('log_errors', 1);
+//ini_set('error_reporting', E_ERROR & ~E_WARNING);
+ini_set('error_reporting', E_ALL);
+ini_set('display_errors', true);
+ini_set('log_errors', true);
 
 
 /**

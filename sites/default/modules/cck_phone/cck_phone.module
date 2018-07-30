@@ -695,7 +695,7 @@ function cck_phone_process($element, $edit, $form_state, $form) {
   $element['country_codes'] = array(
     '#type' => 'select',
 //    '#title' => 'Country code',
-    '#default_value' => ($element['#value']['number'] != '' && isset($element['#value']['country_codes'])) ? $element['#value']['country_codes'] : (isset($field['default_country']) ? $field['default_country'] : NULL),
+    '#default_value' => (@$element['#value']['number'] != '' && isset($element['#value']['country_codes'])) ? $element['#value']['country_codes'] : (isset($field['default_country']) ? $field['default_country'] : NULL),
   );
   if ($field['all_country_codes']) {
     $element['country_codes']['#options'] = _cck_phone_cc_options();

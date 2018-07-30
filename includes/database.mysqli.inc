@@ -128,6 +128,9 @@ function _db_query($query, $debug = 0) {
 
   $result = mysqli_query($active_db, $query);
 
+  	  /* TODO debugging sql errors *///
+	  error_log(__FILE__ . ' ' . __LINE__ . ' ' . $query);
+
   if (variable_get('dev_query', 0)) {
     $query = $bt[2]['function'] ."\n". $query;
     list($usec, $sec) = explode(' ', microtime());
