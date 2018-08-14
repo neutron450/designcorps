@@ -14,7 +14,8 @@ class content_profile_theme_variables {
   var $uid;
   var $_cache = array();
 
-  function content_profile_theme_variables($uid) {
+  ///function content_profile_theme_variables($uid) {
+  function __construct($uid) {
     $this->uid = $uid;
   }
 

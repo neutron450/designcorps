@@ -54,7 +54,8 @@ class view extends views_db_object {
   /**
    * Constructor
    */
-  function view() {
+  ///function view() {
+  function __construct() {
     parent::init();
     // Make sure all of our sub objects are arrays.
     foreach ($this->db_objects() as $object) {
@@ -414,7 +415,7 @@ class view extends views_db_object {
     if (!empty($form_state['js settings'])) {
       $this->js_settings = $form_state['js settings'];
     }
- 
+
     // Don't render exposed filter form when there's form errors.
     // Applies when filters are in a block ("exposed_block" option).
     if (form_get_errors() && empty($form_state['rerender'])) {
@@ -1987,7 +1988,8 @@ class views_db_object {
  */
 class views_display extends views_db_object {
   var $db_table = 'views_display';
-  function views_display($init = TRUE) {
+  ///function views_display($init = TRUE) {
+  function __construct($init = TRUE) {
     parent::init($init);
   }
 
