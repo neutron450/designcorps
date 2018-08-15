@@ -1008,6 +1008,9 @@ function drupal_set_message($message = NULL, $type = 'status', $repeat = TRUE) {
 
   /* TODO find a better way to hide the warnings *///
   foreach($_SESSION['messages'][$type] as $key=>$value) {
+	if (strpos($value, 'Creating default object from empty') > 0) {
+      unset($_SESSION['messages'][$type][$key]);
+	}
 	if (strpos($value, 'Declaration of') > 0) {
       unset($_SESSION['messages'][$type][$key]);
 	}
